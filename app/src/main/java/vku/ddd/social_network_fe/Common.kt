@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -466,6 +467,15 @@ object Common {
                     }
                 }
             }
+        }
+    }
+    @Composable
+    fun SearchItem(navController: NavHostController) {
+        Row {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = "Search string"
+            )
         }
     }
 }
