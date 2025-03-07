@@ -1,14 +1,18 @@
 package vku.ddd.social_network_fe
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -21,6 +25,8 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ThumbDown
+import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.Repeat
 import androidx.compose.material.icons.outlined.Search
@@ -35,10 +41,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,7 +59,108 @@ import androidx.navigation.NavHostController
 
 object Common {
     @Composable
-    fun Post1Image() {
+    fun LikeCommentShareButtons(color : Color = Color.White, textColor: Color = Color.Gray, navController: NavHostController) {
+        Row (
+            modifier = Modifier
+        ) {
+            var isLiked = remember { mutableStateOf(false) }
+            Button(
+                onClick = {
+                    isLiked.value = !isLiked.value
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = color, //
+                    contentColor = color
+                ),
+                shape = RectangleShape,
+                modifier = Modifier
+                    .height(50.dp)
+                    .weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.ThumbUp, // Biểu tượng Like
+                    contentDescription = "Like",
+                    tint = if (isLiked.value) Color.Blue else textColor,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "Like", color = if (isLiked.value) Color.Blue else textColor, fontSize = 14.sp)
+            }
+            Button(
+                onClick = {
+                    navController.navigate("post")
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = color, // Màu xanh Facebook
+                    contentColor = color
+                ),
+                shape = RectangleShape, // Bo tròn viền
+                modifier = Modifier
+                    .height(50.dp)
+                    .weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.ChatBubbleOutline,
+                    contentDescription = "Comment",
+                    tint = textColor,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "Comment", color = textColor, fontSize = 14.sp)
+            }
+            Button(
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = color,
+                    contentColor = color
+                ),
+                shape = RectangleShape,
+                modifier = Modifier
+                    .height(50.dp)
+                    .weight(1f)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Repeat,
+                    contentDescription = "Share",
+                    tint = textColor,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = "Share", color = textColor, fontSize = 14.sp)
+            }
+        }
+    }
+    @Composable
+    fun LikeCommentShareCounter(color: Color = Color.White, textColor: Color = Color.Black) {
+        Row (
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row (
+                modifier = Modifier
+                    .background(color)
+                    .padding(vertical = 10.dp, horizontal = 4.dp)
+                    .fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ThumbUp,
+                    contentDescription = "Like icon",
+                    tint = Color.Blue
+                )
+                Spacer(Modifier.width(2.dp))
+                Text("245", color = textColor)
+                Spacer(Modifier.width(10.dp))
+                Icon(
+                    imageVector = Icons.Filled.ThumbDown,
+                    contentDescription = "Dislike icon",
+                    tint = Color.Red
+                )
+                Spacer(Modifier.width(2.dp))
+                Text("245", color = textColor)
+            }
+        }
+    }
+    @Composable
+    fun Post1Image(navController: NavHostController) {
         Column {
             Spacer(Modifier.height(6.dp))
             Row (
@@ -81,77 +194,11 @@ object Common {
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            Row (
-                modifier = Modifier
-            ) {
-                var isLiked = remember { mutableStateOf(false) }
-                Button(
-                    onClick = {
-                        isLiked.value = !isLiked.value
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White, // Màu xanh Facebook
-                        contentColor = Color.White
-                    ),
-                    shape = RectangleShape, // Bo tròn viền
-                    modifier = Modifier
-                        .height(50.dp)
-                        .weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ThumbUp, // Biểu tượng Like
-                        contentDescription = "Like",
-                        tint = if (isLiked.value) Color.Blue else Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Like", color = if (isLiked.value) Color.Blue else Color.Gray, fontSize = 14.sp)
-                }
-                Button(
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White, // Màu xanh Facebook
-                        contentColor = Color.White
-                    ),
-                    shape = RectangleShape, // Bo tròn viền
-                    modifier = Modifier
-                        .height(50.dp)
-                        .weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ChatBubbleOutline, // Biểu tượng Like
-                        contentDescription = "Comment",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Comment", color = Color.Gray, fontSize = 14.sp)
-                }
-                Button(
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.White
-                    ),
-                    shape = RectangleShape,
-                    modifier = Modifier
-                        .height(50.dp)
-                        .weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Repeat,
-                        contentDescription = "Share",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Share", color = Color.Gray, fontSize = 14.sp)
-                }
-            }
+            LikeCommentShareButtons(navController = navController)
         }
     }
     @Composable
-    fun Post2Images() {
+    fun Post2Images(navController: NavHostController) {
         Column {
             Spacer(Modifier.height(6.dp))
             Row (
@@ -194,74 +241,8 @@ object Common {
                     }
                 }
             }
-
-            Row (
-                modifier = Modifier
-            ) {
-                var isLiked = remember { mutableStateOf(false) }
-                Button(
-                    onClick = {
-                        isLiked.value = !isLiked.value
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White, // Màu xanh Facebook
-                        contentColor = Color.White
-                    ),
-                    shape = RectangleShape, // Bo tròn viền
-                    modifier = Modifier
-                        .height(50.dp)
-                        .weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ThumbUp, // Biểu tượng Like
-                        contentDescription = "Like",
-                        tint = if (isLiked.value) Color.Blue else Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Like", color = if (isLiked.value) Color.Blue else Color.Gray, fontSize = 14.sp)
-                }
-                Button(
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White, // Màu xanh Facebook
-                        contentColor = Color.White
-                    ),
-                    shape = RectangleShape, // Bo tròn viền
-                    modifier = Modifier
-                        .height(50.dp)
-                        .weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ChatBubbleOutline, // Biểu tượng Like
-                        contentDescription = "Comment",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Comment", color = Color.Gray, fontSize = 14.sp)
-                }
-                Button(
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.White
-                    ),
-                    shape = RectangleShape,
-                    modifier = Modifier
-                        .height(50.dp)
-                        .weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Repeat,
-                        contentDescription = "Share",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Like", color = Color.Gray, fontSize = 14.sp)
-                }
-            }
+            LikeCommentShareCounter()
+            LikeCommentShareButtons(navController = navController)
         }
     }
     @Composable
@@ -294,7 +275,7 @@ object Common {
 
             ) {
                 items(3) {
-                        i ->
+                    i ->
                     Box (
                         modifier = Modifier
                             .fillMaxWidth()
@@ -306,81 +287,17 @@ object Common {
                             else R.drawable.uet),
                             contentDescription = "Background Image",
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    navController.navigate("image-detail")
+                                }
                         )
                     }
                 }
             }
 
-            Row (
-                modifier = Modifier
-            ) {
-                var isLiked = remember { mutableStateOf(false) }
-                Button(
-                    onClick = {
-                        isLiked.value = !isLiked.value
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White, // Màu xanh Facebook
-                        contentColor = Color.White
-                    ),
-                    shape = RectangleShape, // Bo tròn viền
-                    modifier = Modifier
-                        .height(50.dp)
-                        .weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ThumbUp, // Biểu tượng Like
-                        contentDescription = "Like",
-                        tint = if (isLiked.value) Color.Blue else Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Like", color = if (isLiked.value) Color.Blue else Color.Gray, fontSize = 14.sp)
-                }
-                Button(
-                    onClick = {
-                        navController.navigate("post")
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White, // Màu xanh Facebook
-                        contentColor = Color.White
-                    ),
-                    shape = RectangleShape, // Bo tròn viền
-                    modifier = Modifier
-                        .height(50.dp)
-                        .weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.ChatBubbleOutline, // Biểu tượng Like
-                        contentDescription = "Comment",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Comment", color = Color.Gray, fontSize = 14.sp)
-                }
-                Button(
-                    onClick = {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White,
-                        contentColor = Color.White
-                    ),
-                    shape = RectangleShape,
-                    modifier = Modifier
-                        .height(50.dp)
-                        .weight(1f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Repeat,
-                        contentDescription = "Share",
-                        tint = Color.Gray,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "Like", color = Color.Gray, fontSize = 14.sp)
-                }
-            }
+            LikeCommentShareButtons(navController = navController)
         }
     }
     @Composable
@@ -475,6 +392,85 @@ object Common {
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = "Search string"
+            )
+        }
+    }
+    @Composable
+    fun ImageDetail(navController: NavHostController) {
+        val hidden = remember { mutableStateOf(false) }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            ZoomableImage(R.drawable.hust)
+            Column (
+                modifier = Modifier
+                    .alpha(if (hidden.value) 0f else 1f)
+                    .background(Color.Black.copy(alpha = 0.35f))
+                    .padding(start = 6.dp, end = 6.dp, top = 4.dp)
+                    .align(Alignment.BottomStart)
+                    .clickable {
+                        hidden.value = !hidden.value
+                    }
+            ) {
+                Text(
+                    text = "Nguyễn Văn A",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 18.sp,
+                    color = Color.White,
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate("profile")
+                        }
+                )
+                Text(
+                    text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+                    color = Color.White
+                )
+                LikeCommentShareCounter(color = Color.Transparent, textColor = Color.White)
+                LikeCommentShareButtons(color = Color.Transparent, textColor = Color.White, navController = navController)
+            }
+
+        }
+    }
+    @Composable
+    fun ZoomableImage(@DrawableRes imageRes: Int) {
+        var scale = remember { mutableStateOf(1f) }
+        var offset = remember { mutableStateOf(Offset(0f, 0f)) }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+                .pointerInput(Unit) {
+                    detectTransformGestures { _, pan, zoom, _ ->
+                        // Cập nhật scale với giới hạn từ 1x đến 5x
+                        val newScale = (scale.value * zoom).coerceIn(1f, 5f)
+
+                        // Tính toán giới hạn di chuyển để ảnh không bị kéo ra khỏi màn hình
+                        val maxX = (newScale - 1) * 500f // Giới hạn X dựa trên scale
+                        val maxY = (newScale - 1) * 500f // Giới hạn Y dựa trên scale
+                        val newOffset = Offset(
+                            x = (offset.value.x + pan.x).coerceIn(-maxX, maxX),
+                            y = (offset.value.y + pan.y).coerceIn(-maxY, maxY)
+                        )
+
+                        scale.value = newScale
+                        offset.value = newOffset
+                    }
+                }
+        ) {
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = "Zoomable Image",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer(
+                        scaleX = scale.value,
+                        scaleY = scale.value,
+                        translationX = offset.value.x,
+                        translationY = offset.value.y
+                    )
             )
         }
     }

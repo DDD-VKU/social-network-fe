@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalLayoutApi::class)
+@file:OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 
 package vku.ddd.social_network_fe
 
@@ -75,6 +75,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -97,7 +98,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
@@ -128,7 +131,8 @@ class MainActivity : ComponentActivity() {
                     if (!(currentRoute == "profile" ||
                             currentRoute == "post" ||
                             currentRoute == "search" ||
-                            currentRoute == "post-create"))
+                            currentRoute == "post-create" ||
+                            currentRoute == "image-detail"))
                     TopNavigationBar(
                         listOf(
                             TopNavItem(
@@ -246,6 +250,7 @@ fun Navigation(navController: NavHostController, mainNavigation: Boolean) {
             composable("post") { PostScreen(navController) }
             composable("search") { SearchScreen(navController) }
             composable("post-create") { CreateUpdatePostScreen(navController) }
+            composable("image-detail") { Common.ImageDetail(navController) }
         } else {
             composable("post-search") { PostSearchScreen(navController) }
             composable("user-search") { UserSearchScreen(navController) }
@@ -303,9 +308,9 @@ fun HomeScreen(navController: NavHostController) {
             Divider(color = Color(0xFFE0E0E0))
         }
         items (20) {
-                i -> Common.Post1Image()
+                i -> Common.Post1Image(navController = navController)
                     Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-                    Common.Post2Images()
+                    Common.Post2Images(navController = navController)
                     Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
                     Common.Post3Images(navController)
                     Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
@@ -736,9 +741,9 @@ fun ProfileScreen(navController: NavHostController) {
                 Divider(Modifier.height(1.dp))
             }
             items (20) {
-                    i -> Common.Post1Image()
+                    i -> Common.Post1Image(navController = navController)
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-                Common.Post2Images()
+                Common.Post2Images(navController = navController)
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
                 Common.Post3Images(navController)
                 Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
@@ -858,23 +863,48 @@ fun PostScreen(navController: NavHostController) {
 @Composable
 fun CreateUpdatePostScreen(navController: NavHostController) {
     var postContent by remember { mutableStateOf("") }
-    var selectedPrivacy by remember { mutableStateOf("Friends") }
+    var selectedPrivacy by remember { mutableStateOf("Public") }
     val privacyOptions = listOf("Public", "Followers", "Private")
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tạo bài viết") },
+                title = {
+                    Text("Create your post",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold
+                ) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    TextButton(onClick = { /* Handle post action */ }) {
-                        Text("ĐĂNG", color = Color.Blue, fontWeight = FontWeight.Bold)
+                    TextButton(
+                        onClick = { /* Handle post action */ },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Transparent
+                        )
+                    ) {
+                        Text("POST",
+                            color = Color.Blue,
+                            fontWeight = FontWeight.Bold)
                     }
-                }
+                },
+                backgroundColor = Color.Transparent,
+                elevation = 0.dp,
+                modifier = Modifier
+                    .drawBehind {
+                        val strokeWidth = 1 * density
+                        val y = size.height - strokeWidth / 2
+
+                        drawLine(
+                            Color.LightGray,
+                            Offset(0f, y),
+                            Offset(size.width, y),
+                            strokeWidth
+                        )
+                    }
             )
         }
     ) { innerPadding ->
@@ -892,7 +922,8 @@ fun CreateUpdatePostScreen(navController: NavHostController) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
-                    Text("Hoàng Thái Phan Minh", fontWeight = FontWeight.Bold)
+                    Text("Nguyễn Văn A", fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(4.dp))
                     DropdownMenuBox(selectedPrivacy, privacyOptions) { selectedPrivacy = it }
                 }
             }
@@ -900,26 +931,47 @@ fun CreateUpdatePostScreen(navController: NavHostController) {
             TextField(
                 value = postContent,
                 onValueChange = { postContent = it },
-                placeholder = { Text("Bạn đang nghĩ gì?") },
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 4
+                placeholder = {
+                    Text("What's in your mind?",
+                        modifier = Modifier
+                            .offset(y = -4.dp, x = 2.dp)
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Transparent, shape = RoundedCornerShape(10.dp))
+                    .border(1.dp, Color.Blue, RoundedCornerShape(10.dp))
+                ,
+                maxLines = 6,
+                minLines = 4,
+                colors = TextFieldDefaults.textFieldColors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent
+                ),
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { /* Handle image selection */ },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF008000)),
+                shape = RoundedCornerShape(6.dp)
             ) {
                 Icon(imageVector = Icons.Default.Image, contentDescription = "Add Image")
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Ảnh/Video")
+                Text("Image")
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = { /* Handle post submission */ },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
+                modifier = Modifier
+                    .fillMaxWidth()
+                ,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
+                shape = RoundedCornerShape(6.dp)
             ) {
-                Text("ĐĂNG", color = Color.White, fontWeight = FontWeight.Bold)
+                Text("POST", color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -929,7 +981,18 @@ fun CreateUpdatePostScreen(navController: NavHostController) {
 fun DropdownMenuBox(selected: String, options: List<String>, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box {
-        Button(onClick = { expanded = true }) {
+        Button(
+            onClick = { expanded = true },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent,
+                contentColor = Color.Black
+            ),
+            border = BorderStroke(width = 1.dp, color = Color.Black),
+            contentPadding = PaddingValues(0.dp),
+            modifier = Modifier
+                .height(32.dp)
+                .width(100.dp)
+        ) {
             Text(selected)
             Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
         }
@@ -1062,9 +1125,9 @@ fun PostSearchScreen(navController: NavHostController) {
             Divider(color = Color(0xFFE0E0E0))
         }
         items (20) {
-                i -> Common.Post1Image()
+                i -> Common.Post1Image(navController = navController)
             Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-            Common.Post2Images()
+            Common.Post2Images(navController = navController)
             Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
             Common.Post3Images(navController)
             Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
