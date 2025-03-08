@@ -1,4 +1,4 @@
-package vku.ddd.social_network_fe
+package vku.ddd.social_network_fe.ui.components
 
 import androidx.compose.ui.graphics.vector.ImageVector
 
