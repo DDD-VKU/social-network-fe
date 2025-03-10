@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Article
@@ -39,7 +40,7 @@ import vku.ddd.social_network_fe.ui.layouts.TopNavigationBar
 
 @Composable
 fun SearchScreen(navController: NavHostController) {
-    var searchNavController = rememberNavController()
+    val searchNavController = rememberNavController()
     val searchString = remember { mutableStateOf("") }
     var currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     Scaffold (
@@ -51,7 +52,9 @@ fun SearchScreen(navController: NavHostController) {
                 TopAppBar(
                     backgroundColor = Color.White,
                     elevation = 4.dp,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .windowInsetsPadding(WindowInsets.statusBars)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -67,6 +70,7 @@ fun SearchScreen(navController: NavHostController) {
                                 contentDescription = "Back"
                             )
                         }
+                        Spacer(Modifier.width(10.dp))
                         TextField(
                             value = searchString.value,
                             onValueChange = {
@@ -74,7 +78,6 @@ fun SearchScreen(navController: NavHostController) {
                             },
                             placeholder = { Text("Search...") },
                             modifier = Modifier.weight(1f)
-                                .fillMaxWidth()
                         )
                     }
                 }
@@ -102,7 +105,7 @@ fun SearchScreen(navController: NavHostController) {
         contentWindowInsets = WindowInsets(0.dp)
     ) { innerPadding ->
         Column (Modifier.padding(innerPadding), verticalArrangement = Arrangement.Bottom) {
-            Navigation(navController = searchNavController, false)
+            Navigation(globalNavController = navController, searchNavController, false)
         }
     }
 }
