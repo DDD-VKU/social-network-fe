@@ -29,11 +29,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 
 @Composable
-fun Registor(){
+fun RegistorScreen(navController: NavHostController) {
     var acc by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
+    var gMail by remember { mutableStateOf("") }
     Column ( modifier = Modifier
         .fillMaxSize()
         .background(Color(0xFFF0F2F5))
@@ -56,7 +58,7 @@ fun Registor(){
         ) {
             Text("Conect with friends and read the best news! ")
         }
-        Spacer(modifier = Modifier.height(140.dp))
+        Spacer(modifier = Modifier.height(60.dp))
         OutlinedTextField(
             modifier = Modifier
                 .height(60.dp)
@@ -74,6 +76,15 @@ fun Registor(){
             onValueChange = { pass = it },
             label = { Text("Password") },
         )
+        Spacer(modifier = Modifier.height(10.dp))
+        OutlinedTextField(
+            modifier = Modifier
+                .height(60.dp)
+                .fillMaxWidth(0.9f),
+            value = gMail,
+            onValueChange = { gMail = it },
+            label = { Text("Email") },
+        )
         val interactionSource = remember { MutableInteractionSource() }
         val isHovered by interactionSource.collectIsPressedAsState()
         Spacer (modifier = Modifier .padding(14.dp))
@@ -88,14 +99,10 @@ fun Registor(){
             ),
             interactionSource = interactionSource
         ) {
-            Text("Starts", fontSize = 19.sp, fontWeight = FontWeight.ExtraBold)
+            Text("Create", fontSize = 19.sp, fontWeight = FontWeight.ExtraBold)
         }
         Spacer(modifier = Modifier.height(18.dp))
 
-        Text("Forget Password",
-            color = Color.Black,
-            modifier = Modifier.clickable {  }
-        )
 
         Spacer(modifier = Modifier.height(18.dp))
 
@@ -130,13 +137,13 @@ fun Registor(){
                 horizontalArrangement = Arrangement.SpaceBetween,
 
                 ) {
-                Text("Don't have accout ?")
+                Text("Have accout ?")
                 Button(
                     modifier = Modifier,
                     shape = RoundedCornerShape(5.dp),
-                    onClick = {},
+                    onClick = {navController.navigate("login")},
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE573E5))
-                ) { Text("Create") }
+                ) { Text("Login") }
             }
         }
     }

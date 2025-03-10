@@ -5,7 +5,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
@@ -16,6 +15,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import vku.ddd.social_network_fe.ui.components.Common
 import vku.ddd.social_network_fe.ui.components.TopNavItem
 import vku.ddd.social_network_fe.ui.screens.auth.LoginScreen
+import vku.ddd.social_network_fe.ui.screens.auth.RegistorScreen
 import vku.ddd.social_network_fe.ui.screens.home.*
 
 @Composable
@@ -58,6 +58,7 @@ fun Navigation(navController: NavHostController, mainNavigation: Boolean) {
                 composable("post-create") { CreateUpdatePostScreen(navController) }
                 composable("image-detail") { Common.ImageDetail(navController) }
                 composable("login"){ LoginScreen(navController) }
+                composable("registor"){ RegistorScreen(navController) }
             } else {
                 composable("post-search") { PostSearchScreen(navController) }
                 composable("user-search") { UserSearchScreen(navController) }

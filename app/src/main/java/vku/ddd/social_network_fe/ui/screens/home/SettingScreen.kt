@@ -1,6 +1,4 @@
-package vku.ddd.social_network_fe.ui.screens
-
-import androidx.compose.ui.text.font.FontVariation
+package vku.ddd.social_network_fe.ui.screens.home
 
 fun SettingScreens(){
 

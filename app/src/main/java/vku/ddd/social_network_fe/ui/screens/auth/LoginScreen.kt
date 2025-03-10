@@ -35,6 +35,10 @@ import androidx.navigation.NavHostController
 fun LoginScreen(navController: NavHostController) {
     var acc by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
+    var passError by remember { mutableStateOf<String?>(null) }
+    var accError by  remember { mutableStateOf<String?>(null) }
+    var isError by  remember { mutableStateOf<String?>(null) }
+
     Column ( modifier = Modifier
         .fillMaxSize()
         .background(Color(0xFFF0F2F5))
@@ -55,41 +59,78 @@ fun LoginScreen(navController: NavHostController) {
         Row  (modifier = Modifier
             .padding(6.dp)
         ) {
-            Text("Conect with friends and read the best news! ")
+            Text("Connect with friends and read the best news! ")
         }
         Spacer(modifier = Modifier.height(140.dp))
+        //User input
         OutlinedTextField(
             modifier = Modifier
                 .height(60.dp)
                 .fillMaxWidth(0.9f),
             value = acc,
-            onValueChange = { acc = it },
+            onValueChange =
+            { acc = it
+              accError = if(it.isBlank()) "Can't empty" else null
+            },
             label = { Text("Username") },
+            isError = accError != null,
+
         )
-        Spacer (modifier = Modifier .padding(6.dp))
+        accError?.let {
+            Text(text = it, color = Color.Red, fontSize = 14.sp, modifier = Modifier.padding(start = 16.dp))
+        }
+
+        Spacer(modifier = Modifier.padding(6.dp))
+
+        //Password input
         OutlinedTextField(
             modifier = Modifier
                 .height(60.dp)
                 .fillMaxWidth(0.9f),
             value = pass,
-            onValueChange = { pass = it },
+            onValueChange =
+            {
+                pass = it
+                passError = when {
+                    it.isBlank() -> "Can't empty"
+                    it.length < 8 -> "Can't less than 8 character"
+                    else -> null;
+                }
+            },
             label = { Text("Password") },
+            isError = passError != null
         )
+        passError?.let {
+            Text(text = it, color = Color.Red, fontSize = 14.sp, modifier = Modifier.padding(start = 16.dp))
+        }
+
+        //Login button
         val interactionSource = remember { MutableInteractionSource() }
         val isHovered by interactionSource.collectIsPressedAsState()
         Spacer (modifier = Modifier .padding(14.dp))
         Button(
-            onClick = {},
+            onClick = {
+                // Kiểm tra trước khi cho phép đăng nhập
+                accError = if (acc.isBlank()) "Username can't empty" else null
+                passError = when {
+                    pass.isBlank() -> "Password can't empty"
+                    pass.length < 8 -> "Can't less than 8 character"
+                    else -> null
+                }
+
+                if (accError == null && passError == null) {
+                    // Thực hiện hành động khi hợp lệ
+                    navController.navigate("home")
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .height(70.dp)
                 .padding(6.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = if (isHovered) Color(0xFF135DB5) else Color(0xFF1877F2)
-            ),
-            interactionSource = interactionSource
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1877F2))
         ) {
-            Text("Starts", fontSize = 19.sp, fontWeight = FontWeight.ExtraBold)
+            Text("Start", fontSize = 19.sp, fontWeight = FontWeight.ExtraBold)
         }
         Spacer(modifier = Modifier.height(18.dp))
 
@@ -131,11 +172,11 @@ fun LoginScreen(navController: NavHostController) {
                 horizontalArrangement = Arrangement.SpaceBetween,
 
                 ) {
-                Text("Don't have accout ?")
+                Text("Don't have account ?")
                 Button(
                     modifier = Modifier,
                     shape = RoundedCornerShape(5.dp),
-                    onClick = {},
+                    onClick = {navController.navigate("registor")},
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE573E5))
                 ) { Text("Create") }
             }
