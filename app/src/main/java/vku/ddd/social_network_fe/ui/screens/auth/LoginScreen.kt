@@ -29,9 +29,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 
 @Composable
-fun LoginScreen(){
+fun LoginScreen(navController: NavHostController) {
     var acc by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
     Column ( modifier = Modifier

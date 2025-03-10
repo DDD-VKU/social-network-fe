@@ -192,7 +192,7 @@ fun MenuScreen(navController: NavHostController) {
                         modifier = Modifier
                             .background(Color.White)
                             .padding(bottom = 10.dp)
-                            .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(14.dp))
+                            .background(Color(0xFFE0E0E0))
                             .padding(12.dp)
 
                     ) {
@@ -238,16 +238,18 @@ fun MenuScreen(navController: NavHostController) {
             Row (
                 modifier = Modifier
                     .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(14.dp))
-                    .padding(horizontal = 8.dp, vertical = 12.dp)
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "Đăng xuất",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black)
+                Button (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    onClick = { navController.navigate("login")},
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE0E0E0))
+                )
+                { Text("Đăng xuất", color = Color.Black ,fontSize = 16.sp, fontWeight = FontWeight.Bold) }
             }
         }
     }
