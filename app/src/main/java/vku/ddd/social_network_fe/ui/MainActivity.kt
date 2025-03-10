@@ -18,7 +18,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
-            Navigation(navController, mainNavigation = true)
+            Navigation(navController, null,true)
         }
     }
 }

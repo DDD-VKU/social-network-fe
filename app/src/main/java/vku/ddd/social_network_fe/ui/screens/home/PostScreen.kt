@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.TopAppBar
@@ -90,6 +91,7 @@ fun PostScreen(navController: NavHostController) {
                 elevation = 0.dp,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .windowInsetsPadding(WindowInsets.statusBars)
             )
         },
         contentWindowInsets = WindowInsets(0.dp)
@@ -116,12 +118,10 @@ fun PostScreen(navController: NavHostController) {
             Row (
                 modifier = Modifier
                     .imePadding()
-                    .offset(y = if (isKeyboardVisible.value) navigationBarHeight else imeHeight.dp)
                     .fillMaxWidth()
                     .background(Color.White)
                     .align(Alignment.BottomCenter)
-                    .windowInsetsPadding(WindowInsets.ime)
-
+                    .windowInsetsPadding(WindowInsets.navigationBars)
             ) {
                 TextField(
                     value = commentText.value,

@@ -6,13 +6,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.TopAppBar
@@ -79,7 +84,7 @@ fun CreateUpdatePostScreen(navController: NavHostController) {
                 elevation = 0.dp,
                 modifier = Modifier
                     .drawBehind {
-                        val strokeWidth = 1 * density
+                        val strokeWidth = 2 * density
                         val y = size.height - strokeWidth / 2
 
                         drawLine(
@@ -89,6 +94,7 @@ fun CreateUpdatePostScreen(navController: NavHostController) {
                             strokeWidth
                         )
                     }
+                    .windowInsetsPadding(WindowInsets.statusBars)
             )
         }
     ) { innerPadding ->
@@ -126,7 +132,7 @@ fun CreateUpdatePostScreen(navController: NavHostController) {
                     .background(Color.Transparent, shape = RoundedCornerShape(10.dp))
                     .border(1.dp, Color.Blue, RoundedCornerShape(10.dp))
                 ,
-                maxLines = 6,
+                maxLines = 12,
                 minLines = 4,
                 colors = TextFieldDefaults.colors(
                     focusedIndicatorColor = Color.Transparent,

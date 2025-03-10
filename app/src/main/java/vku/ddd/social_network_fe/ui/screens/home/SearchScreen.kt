@@ -5,11 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.TopAppBar
@@ -38,7 +40,7 @@ import vku.ddd.social_network_fe.ui.layouts.TopNavigationBar
 
 @Composable
 fun SearchScreen(navController: NavHostController) {
-    var searchNavController = rememberNavController()
+    val searchNavController = rememberNavController()
     val searchString = remember { mutableStateOf("") }
     var currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
     Scaffold (
@@ -50,8 +52,9 @@ fun SearchScreen(navController: NavHostController) {
                 TopAppBar(
                     backgroundColor = Color.White,
                     elevation = 4.dp,
-                    modifier = Modifier.fillMaxWidth()
-                        .windowInsetsPadding(WindowInsets.ime)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .windowInsetsPadding(WindowInsets.statusBars)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -102,7 +105,7 @@ fun SearchScreen(navController: NavHostController) {
         contentWindowInsets = WindowInsets(0.dp)
     ) { innerPadding ->
         Column (Modifier.padding(innerPadding), verticalArrangement = Arrangement.Bottom) {
-            Navigation(navController = searchNavController, false)
+            Navigation(globalNavController = navController, searchNavController, false)
         }
     }
 }

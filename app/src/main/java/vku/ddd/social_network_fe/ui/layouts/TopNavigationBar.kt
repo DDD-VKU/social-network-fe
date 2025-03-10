@@ -1,6 +1,7 @@
 package vku.ddd.social_network_fe.ui.layouts
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -27,9 +28,10 @@ fun TopNavigationBar(
     val backStackEntry = navController.currentBackStackEntryAsState()
 //    HeadBar()
     BottomNavigation (
-        modifier = Modifier,
+        modifier = Modifier
+            .offset(y = -4.dp),
         backgroundColor = Color.White,
-        elevation = 5.dp,
+        elevation = 0.dp,
 
         ) {
         items.forEach { item ->
