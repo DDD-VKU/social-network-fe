@@ -34,9 +34,11 @@ import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -159,24 +161,28 @@ object Common {
         }
     }
     @Composable
+    fun PostMetaData(navController: NavHostController) {
+        Row (
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 5.dp)
+        ) {
+            Box (
+                modifier = Modifier
+                    .size(40.dp)
+                    .border(1.dp, Color.Black, shape = CircleShape)
+            ) {  }
+            Spacer(Modifier.width(10.dp))
+            Column {
+                Text(text = "Nguyễn Văn A", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(text = "2020/04/04 19:00:00")
+            }
+        }
+    }
+    @Composable
     fun Post1Image(navController: NavHostController) {
         Column {
             Spacer(Modifier.height(6.dp))
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 5.dp)
-            ) {
-                Box (
-                    modifier = Modifier
-                        .size(40.dp)
-                        .border(1.dp, Color.Black, shape = CircleShape)
-                ) {  }
-                Spacer(Modifier.width(10.dp))
-                Column {
-                    Text(text = "Nguyễn Văn A", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text(text = "2020/04/04 19:00:00")
-                }
-            }
+            PostMetaData(navController)
             Text (
                 text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
                 modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp)
@@ -193,6 +199,7 @@ object Common {
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+            LikeCommentShareCounter()
             LikeCommentShareButtons(navController = navController)
         }
     }
@@ -200,21 +207,7 @@ object Common {
     fun Post2Images(navController: NavHostController) {
         Column {
             Spacer(Modifier.height(6.dp))
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 5.dp)
-            ) {
-                Box (
-                    modifier = Modifier
-                        .size(40.dp)
-                        .border(1.dp, Color.Black, shape = CircleShape)
-                ) {  }
-                Spacer(Modifier.width(10.dp))
-                Column {
-                    Text(text = "Nguyễn Văn A", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text(text = "2020/04/04 19:00:00")
-                }
-            }
+            PostMetaData(navController)
             Text (
                 text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
                 modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp)
@@ -248,21 +241,7 @@ object Common {
     fun Post3Images(navController: NavHostController) {
         Column {
             Spacer(Modifier.height(6.dp))
-            Row (
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 5.dp)
-            ) {
-                Box (
-                    modifier = Modifier
-                        .size(40.dp)
-                        .border(1.dp, Color.Black, shape = CircleShape)
-                ) {  }
-                Spacer(Modifier.width(10.dp))
-                Column {
-                    Text(text = "Nguyễn Văn A", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                    Text(text = "2020/04/04 19:00:00")
-                }
-            }
+            PostMetaData(navController)
             Text (
                 text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
                 modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp)
@@ -296,7 +275,7 @@ object Common {
                     }
                 }
             }
-
+            LikeCommentShareCounter()
             LikeCommentShareButtons(navController = navController)
         }
     }
@@ -474,4 +453,33 @@ object Common {
             )
         }
     }
+    @Composable
+    fun ValidateTextField(
+        textFieldState: MutableState<String>,
+        placeholder: String,
+        textFieldErrorState: MutableState<String?>,
+        errorLabel: (String) -> String?,
+        modifier: Modifier = Modifier
+    ) {
+        Column {
+            OutlinedTextField(
+                modifier = modifier,
+                value = textFieldState.value,
+                onValueChange = {
+                    textFieldState.value = it
+                    textFieldErrorState.value = errorLabel(it) // ✅ Không cần `?: ""`
+                },
+                label = {
+                    Text(text = placeholder)
+                },
+                isError = textFieldErrorState.value != null // ✅ Cách đúng để xác định lỗi
+            )
+            textFieldErrorState.value?.let { errorMessage ->
+                if (errorMessage.isNotBlank()) { // ✅ Chỉ hiển thị nếu có lỗi
+                    Text(text = errorMessage, fontSize = 12.sp, color = Color.Red)
+                }
+            }
+        }
+    }
+
 }
