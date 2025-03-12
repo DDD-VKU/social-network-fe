@@ -176,7 +176,7 @@ fun LoginScreen(navController: NavHostController) {
                 Button(
                     modifier = Modifier,
                     shape = RoundedCornerShape(5.dp),
-                    onClick = {navController.navigate("registor")},
+                    onClick = {navController.navigate("register")},
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE573E5))
                 ) { Text("Create") }
             }

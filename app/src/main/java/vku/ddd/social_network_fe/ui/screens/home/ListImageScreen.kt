@@ -1,2 +1,135 @@
 package vku.ddd.social_network_fe.ui.screens.home
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Comment
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import vku.ddd.social_network_fe.R
 
+@Composable
+fun ListImageScreen(navController: NavHostController) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = 4.dp,
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Spacer(modifier = Modifier.width(30.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.uet),
+                            contentDescription = "Avatar",
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Inside,
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text("Thisis Shira", fontWeight = FontWeight.Bold)
+                            Text("Genshin Impact Việt Nam · 3 phút trước", fontSize = 12.sp, color = Color.Gray)
+                        }
+                    }
+
+                    Text(
+                        text = "Cách tui đánh dấu map khi gặp puzzle khó 🤡🤡🤡\n\n" +
+                                "Sẵn tiện xin hỏi có cao nhân nào chỉ giúp tui với huhu 😭😭",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.ThumbUp, contentDescription = "Like")
+                        }
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.Comment, contentDescription = "Comment")
+                        }
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.Share, contentDescription = "Share")
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.hust),
+                        contentDescription = "Map",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(text = "Đây là HUST", modifier = Modifier.padding(top = 8.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.ThumbUp, contentDescription = "Like")
+                        }
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.Comment, contentDescription = "Comment")
+                        }
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.Share, contentDescription = "Share")
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.hcmus),
+                        contentDescription = "In-game",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Text(text = "Đây là UET", modifier = Modifier.padding(top = 8.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.ThumbUp, contentDescription = "Like")
+                        }
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.Comment, contentDescription = "Comment")
+                        }
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Default.Share, contentDescription = "Share")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

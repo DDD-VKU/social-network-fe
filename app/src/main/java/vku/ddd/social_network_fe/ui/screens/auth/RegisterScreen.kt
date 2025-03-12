@@ -1,7 +1,6 @@
 package vku.ddd.social_network_fe.ui.screens.auth
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -137,7 +136,7 @@ fun RegisterScreen(navController: NavHostController) {
                 horizontalArrangement = Arrangement.SpaceBetween,
 
                 ) {
-                Text("Have accout ?")
+                Text("Have account ?")
                 Button(
                     modifier = Modifier,
                     shape = RoundedCornerShape(5.dp),

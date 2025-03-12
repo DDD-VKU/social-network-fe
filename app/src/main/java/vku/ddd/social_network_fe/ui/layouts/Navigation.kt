@@ -16,14 +16,12 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -41,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import vku.ddd.social_network_fe.ui.components.Common
 import vku.ddd.social_network_fe.ui.components.TopNavItem
 import vku.ddd.social_network_fe.ui.screens.auth.LoginScreen
+import vku.ddd.social_network_fe.ui.screens.auth.RegisterScreen
 import vku.ddd.social_network_fe.ui.screens.home.*
 
 @Composable
@@ -60,6 +59,10 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
                         currentRoute == "post" ||
                         currentRoute == "search" ||
                         currentRoute == "post-create" ||
+                        currentRoute == "login" ||
+                        currentRoute == "register" ||
+                        currentRoute == "setting" ||
+                        currentRoute == "list-image" ||
                         currentRoute == "image-detail")) {
                 Column (
                     modifier = Modifier
@@ -143,7 +146,10 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
                 composable("search") { SearchScreen(globalNavController) }
                 composable("post-create") { CreateUpdatePostScreen(globalNavController) }
                 composable("image-detail") { Common.ImageDetail(globalNavController) }
+                composable("setting"){ SettingScreen(globalNavController) }
+                composable("list-image"){ ListImageScreen(globalNavController) }
                 composable("login"){ LoginScreen(globalNavController) }
+                composable("register"){ RegisterScreen(globalNavController) }
             } else {
                 composable("post-search") { PostSearchScreen(globalNavController) }
                 composable("user-search") { UserSearchScreen(globalNavController) }
