@@ -89,7 +89,7 @@ fun SettingScreen(navHostController: NavHostController) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Column {
                             SettingItem("Thông tin cá nhân", Icons.Default.Person)
-                            SettingItem("Mật khẩu và bảo mật", Icons.Default.Security)
+                            SettingItem("Đặt lại mật khẩu", Icons.Default.Security)
                             SettingItem("Tùy chọn", Icons.Default.Settings)
                             SettingItem("Nâng cao", Icons.Default.Verified)
                         }
