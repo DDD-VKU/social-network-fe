@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 
 @Composable
-fun RegistorScreen(navController: NavHostController) {
+fun RegisterScreen(navController: NavHostController) {
     var acc by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
     var gMail by remember { mutableStateOf("") }
@@ -56,7 +56,7 @@ fun RegistorScreen(navController: NavHostController) {
         Row  (modifier = Modifier
             .padding(6.dp)
         ) {
-            Text("Conect with friends and read the best news! ")
+            Text("Connect with friends and read the best news! ")
         }
         Spacer(modifier = Modifier.height(60.dp))
         OutlinedTextField(
