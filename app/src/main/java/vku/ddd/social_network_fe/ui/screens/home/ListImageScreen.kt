@@ -22,18 +22,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import vku.ddd.social_network_fe.R
+import vku.ddd.social_network_fe.ui.components.Common.LikeCommentShareButtons
+import vku.ddd.social_network_fe.ui.components.Common.LikeCommentShareCounter
 
 @Composable
 fun ListImageScreen(navController: NavHostController) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(top = 20.dp),
                 elevation = 4.dp,
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Spacer(modifier = Modifier.width(30.dp))
+
+                Column(modifier = Modifier.padding(4.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(
                             painter = painterResource(id = R.drawable.uet),
@@ -56,22 +59,8 @@ fun ListImageScreen(navController: NavHostController) {
                         modifier = Modifier.padding(top = 8.dp)
                     )
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.ThumbUp, contentDescription = "Like")
-                        }
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.Comment, contentDescription = "Comment")
-                        }
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.Share, contentDescription = "Share")
-                        }
-                    }
+                    LikeCommentShareCounter()
+                    LikeCommentShareButtons(navController = navController)
                     Spacer(modifier = Modifier.height(8.dp))
                     Image(
                         painter = painterResource(id = R.drawable.hust),
@@ -84,22 +73,8 @@ fun ListImageScreen(navController: NavHostController) {
                     )
                     Text(text = "Đây là HUST", modifier = Modifier.padding(top = 8.dp))
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.ThumbUp, contentDescription = "Like")
-                        }
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.Comment, contentDescription = "Comment")
-                        }
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.Share, contentDescription = "Share")
-                        }
-                    }
+//                    LikeCommentShareCounter()
+                    LikeCommentShareButtons(navController = navController)
                     Spacer(modifier = Modifier.height(4.dp))
                     Image(
                         painter = painterResource(id = R.drawable.hcmus),
@@ -112,22 +87,8 @@ fun ListImageScreen(navController: NavHostController) {
                     )
                     Text(text = "Đây là UET", modifier = Modifier.padding(top = 8.dp))
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.ThumbUp, contentDescription = "Like")
-                        }
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.Comment, contentDescription = "Comment")
-                        }
-                        IconButton(onClick = {}) {
-                            Icon(Icons.Default.Share, contentDescription = "Share")
-                        }
-                    }
+//                    LikeCommentShareCounter()
+                    LikeCommentShareButtons(navController = navController)
                 }
             }
         }

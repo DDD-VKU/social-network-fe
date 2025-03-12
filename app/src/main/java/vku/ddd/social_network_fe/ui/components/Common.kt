@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -49,6 +50,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -273,6 +275,45 @@ object Common {
                                 }
                         )
                     }
+                }
+            }
+            LikeCommentShareCounter()
+            LikeCommentShareButtons(navController = navController)
+        }
+    }
+    //post 4 Image
+    @Composable
+    fun Post4Images(navController: NavHostController){
+        Column () {
+            Spacer(modifier = Modifier.padding(8.dp))
+            PostMetaData(navController)
+            Text (
+                text = "A Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp)
+            )
+            LazyVerticalStaggeredGrid(
+                columns = StaggeredGridCells.Fixed(2),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 0.dp, max = 400.dp)
+            ) {
+                items(4) { i->
+                    Image(
+                        painter = painterResource(
+                          when (i){
+                              0 -> R.drawable.uet
+                              1 -> R.drawable.hust
+                              2 -> R.drawable.uet
+                              else -> R.drawable.hust
+                          }
+                        ),
+                        contentDescription = "dsa",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { navController.navigate("image-detail") }
+                    )
                 }
             }
             LikeCommentShareCounter()

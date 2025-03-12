@@ -28,7 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import vku.ddd.social_network_fe.R
 import vku.ddd.social_network_fe.ui.components.Common
+import vku.ddd.social_network_fe.ui.components.PostScreen.PostImage
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -87,6 +89,15 @@ fun HomeScreen(navController: NavHostController) {
             Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
             Common.Post3Images(navController)
             Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+            Common.Post4Images(navController)
+
+//            i-> PostImage(navController, listOf(R.drawable.hust), columns = 1)
+//            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+//            PostImage(navController, listOf(R.drawable.hcmus, R.drawable.hust), columns = 2)
+//            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+//            PostImage(navController, listOf(R.drawable.hcmus, R.drawable.uet, R.drawable.hust), columns = 3)
+//            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+//            PostImage(navController, listOf(R.drawable.hust, R.drawable.uet, R.drawable.hcmus, R.drawable.uet), columns = 2)
         }
     }
 }
