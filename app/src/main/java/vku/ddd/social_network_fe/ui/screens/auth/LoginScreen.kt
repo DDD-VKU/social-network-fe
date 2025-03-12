@@ -2,6 +2,7 @@ package vku.ddd.social_network_fe.ui.screens.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -11,8 +12,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
@@ -42,7 +46,9 @@ fun LoginScreen(navController: NavHostController) {
     Column ( modifier = Modifier
         .fillMaxSize()
         .background(Color(0xFFF0F2F5))
-        .padding(16.dp),
+        .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+        .imePadding()
+        .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row (modifier = Modifier
@@ -61,7 +67,7 @@ fun LoginScreen(navController: NavHostController) {
         ) {
             Text("Connect with friends and read the best news! ")
         }
-        Spacer(modifier = Modifier.height(140.dp))
+        Spacer(modifier = Modifier.height(120.dp))
         //User input
         OutlinedTextField(
             modifier = Modifier
@@ -178,7 +184,7 @@ fun LoginScreen(navController: NavHostController) {
                     shape = RoundedCornerShape(5.dp),
                     onClick = {navController.navigate("register")},
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE573E5))
-                ) { Text("Create") }
+                ) { Text("Create account") }
             }
         }
     }

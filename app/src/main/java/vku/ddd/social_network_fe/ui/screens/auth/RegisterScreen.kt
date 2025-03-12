@@ -1,21 +1,37 @@
 package vku.ddd.social_network_fe.ui.screens.auth
 
+import android.app.DatePickerDialog
+import android.util.Patterns
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,65 +41,200 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import vku.ddd.social_network_fe.ui.components.Common.ValidateTextField
+import vku.ddd.social_network_fe.ui.components.DropdownMenuBox
+import java.util.Calendar
 
 @Composable
 fun RegisterScreen(navController: NavHostController) {
-    var acc by remember { mutableStateOf("") }
-    var pass by remember { mutableStateOf("") }
-    var gMail by remember { mutableStateOf("") }
+    val fname = remember { mutableStateOf("") }
+    val lname = remember { mutableStateOf("") }
+    var username = remember { mutableStateOf("") }
+    var password = remember { mutableStateOf("") }
+    var passwordConfirm = remember { mutableStateOf("") }
+    var email = remember { mutableStateOf("") }
+
+    val fnameError = remember { mutableStateOf<String?>(null) }
+    val lnameError = remember { mutableStateOf<String?>(null) }
+    var usernameError = remember { mutableStateOf<String?>(null) }
+    var passwordError = remember { mutableStateOf<String?>(null) }
+    var passwordConfirmError = remember { mutableStateOf<String?>(null) }
+    var emailError = remember { mutableStateOf<String?>(null) }
+
+    val genders = listOf("Male", "Female", "Other")
+    var selectedGender by remember { mutableStateOf(genders[0]) }
+    var expanded by remember { mutableStateOf(false) }
+
+    fun isValidEmail(email: String): Boolean {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
     Column ( modifier = Modifier
         .fillMaxSize()
         .background(Color(0xFFF0F2F5))
-        .padding(16.dp),
+        .padding(end = 16.dp, start = 16.dp, top = 16.dp)
+        .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row (modifier = Modifier
-            .padding(20.dp)
-        ){
-            Text("LOGO")
-        }
         Spacer(modifier = Modifier.height(70.dp))
-        Row  (modifier = Modifier
+        Row (modifier = Modifier
             .padding(10.dp)
         ) {
-            Text("Social JSX ", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1877F2))
+            Text (
+                text = "Footnote",
+                color = Color.Blue,
+                fontSize = 32.sp,
+                fontFamily = FontFamily.SansSerif,
+                fontWeight = FontWeight.Bold
+            )
         }
-        Row  (modifier = Modifier
+        Row (modifier = Modifier
             .padding(6.dp)
         ) {
-            Text("Connect with friends and read the best news! ")
+            Text("Conect with friends and read the best news! ")
         }
-        Spacer(modifier = Modifier.height(60.dp))
-        OutlinedTextField(
-            modifier = Modifier
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(top = 60.dp)
+        ) {
+            val textFieldModifier = Modifier
                 .height(60.dp)
-                .fillMaxWidth(0.9f),
-            value = acc,
-            onValueChange = { acc = it },
-            label = { Text("Username") },
-        )
-        Spacer (modifier = Modifier .padding(6.dp))
-        OutlinedTextField(
-            modifier = Modifier
-                .height(60.dp)
-                .fillMaxWidth(0.9f),
-            value = pass,
-            onValueChange = { pass = it },
-            label = { Text("Password") },
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        OutlinedTextField(
-            modifier = Modifier
-                .height(60.dp)
-                .fillMaxWidth(0.9f),
-            value = gMail,
-            onValueChange = { gMail = it },
-            label = { Text("Email") },
-        )
+                .fillMaxWidth(0.9f)
+            ValidateTextField(
+                lname,
+                "Last name",
+                lnameError,
+                {if (it.isBlank()) "Last name is required" else null},
+                textFieldModifier
+            )
+            ValidateTextField(
+                fname,
+                "First name",
+                fnameError,
+                {if (it.isBlank()) "First name is required" else null},
+                textFieldModifier
+            )
+            ValidateTextField(
+                username,
+                "Username",
+                usernameError,
+                {if (it.isBlank()) "Username is required"
+                else if (it.length <= 7) "Username must be at least 8 characters"
+                else null},
+                textFieldModifier
+            )
+            ValidateTextField(
+                password,
+                "Password",
+                passwordError,
+                {if (it.isBlank()) "Password cannot be blank"
+                else if (it.length < 8) "Password must be at least 8 characters"
+                else null},
+                textFieldModifier
+            )
+            ValidateTextField(
+                passwordConfirm,
+                "Password confirm",
+                passwordConfirmError,
+                {if (it != password.value) "Password doesn't match"
+                else null},
+                textFieldModifier
+            )
+            ValidateTextField(
+                email,
+                "Email",
+                emailError,
+                {if (!isValidEmail(it)) "Invalid email format" else null},
+                textFieldModifier
+            )
+
+            // Gender selection
+            Box {
+                Button(
+                    onClick = { expanded = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Color.Black
+                    ),
+                    border = BorderStroke(width = 1.dp, color = Color.DarkGray),
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = textFieldModifier,
+                    shape = RoundedCornerShape(2.dp),
+                ) {
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(selectedGender, fontSize = 16.sp, color = Color.DarkGray)
+                        Icon(
+                            imageVector = Icons.Default.ArrowDropDown,
+                            contentDescription = "Dropdown"
+                        )
+                    }
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    genders.forEach { gender ->
+                        DropdownMenuItem(onClick = {
+                            selectedGender = gender
+                            expanded = false
+                        },
+                            text = { Text(gender) }
+                        )
+                    }
+                }
+            }
+
+            // Date of Birth selection
+            var selectedDate by remember { mutableStateOf("") }
+            var showDatePicker by remember { mutableStateOf(false) }
+
+            if (showDatePicker) {
+                val context = LocalContext.current
+                val calendar = Calendar.getInstance()
+
+                DatePickerDialog(
+                    context,
+                    { _, year, month, dayOfMonth ->
+                        selectedDate = "$dayOfMonth/${month + 1}/$year"
+                        showDatePicker = false
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+                ).show()
+            }
+
+            OutlinedTextField(
+                modifier = textFieldModifier,
+                value = selectedDate,
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Date of Birth") },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = "Select Date",
+                        modifier = Modifier.clickable { showDatePicker = true }
+                    )
+                }
+            )
+        }
+
         val interactionSource = remember { MutableInteractionSource() }
         val isHovered by interactionSource.collectIsPressedAsState()
         Spacer (modifier = Modifier .padding(14.dp))
@@ -136,7 +287,7 @@ fun RegisterScreen(navController: NavHostController) {
                 horizontalArrangement = Arrangement.SpaceBetween,
 
                 ) {
-                Text("Have account ?")
+                Text("Have accout ?")
                 Button(
                     modifier = Modifier,
                     shape = RoundedCornerShape(5.dp),

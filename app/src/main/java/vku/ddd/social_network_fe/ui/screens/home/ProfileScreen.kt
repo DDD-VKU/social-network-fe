@@ -9,9 +9,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.TopAppBar
@@ -67,13 +70,17 @@ fun ProfileScreen(navController: NavHostController) {
                     }
                 },
                 backgroundColor = Color.Transparent,
-                elevation = 0.dp
+                elevation = 0.dp,
+                modifier = Modifier
+                    .windowInsetsPadding(WindowInsets.statusBars)
             )
         },
         contentWindowInsets = WindowInsets(bottom = 0.dp)
     ) { innerPadding ->
         LazyColumn (
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
             items(1) {
                     i -> Row (
