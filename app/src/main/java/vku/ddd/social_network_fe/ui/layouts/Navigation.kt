@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -17,14 +16,12 @@ import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -62,9 +59,11 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
                         currentRoute == "post" ||
                         currentRoute == "search" ||
                         currentRoute == "post-create" ||
-                        currentRoute == "image-detail" ||
                         currentRoute == "login" ||
-                        currentRoute == "register")) {
+                        currentRoute == "register" ||
+                        currentRoute == "setting" ||
+                        currentRoute == "list-image" ||
+                        currentRoute == "image-detail")) {
                 Column (
                     modifier = Modifier
                         .shadow(elevation = 5.dp)
@@ -134,9 +133,7 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
 
         NavHost(
             navController = if (mainNavigation) globalNavController else searchNavController!!,
-            startDestination = if (mainNavigation) "home" else "post-search",
-            modifier = Modifier
-                .windowInsetsPadding(WindowInsets.navigationBars)
+            startDestination = if (mainNavigation) "home" else "post-search"
         ) {
             if (mainNavigation) {
                 composable("home") { HomeScreen(globalNavController) }
@@ -149,6 +146,8 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
                 composable("search") { SearchScreen(globalNavController) }
                 composable("post-create") { CreateUpdatePostScreen(globalNavController) }
                 composable("image-detail") { Common.ImageDetail(globalNavController) }
+                composable("setting"){ SettingScreen(globalNavController) }
+                composable("list-image"){ ListImageScreen(globalNavController) }
                 composable("login"){ LoginScreen(globalNavController) }
                 composable("register"){ RegisterScreen(globalNavController) }
             } else {

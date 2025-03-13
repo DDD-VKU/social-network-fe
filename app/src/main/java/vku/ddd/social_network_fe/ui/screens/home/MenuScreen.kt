@@ -197,6 +197,7 @@ fun MenuScreen(navController: NavHostController) {
 
                     ) {
                         Column (
+                            modifier = Modifier.clickable { navController.navigate("list-image") },
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Icon(
@@ -220,6 +221,7 @@ fun MenuScreen(navController: NavHostController) {
 
                     ) {
                         Column (
+                            modifier = Modifier.clickable { navController.navigate("setting") },
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Icon(
