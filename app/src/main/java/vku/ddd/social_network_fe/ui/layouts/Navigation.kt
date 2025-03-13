@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -76,6 +77,7 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
                                 .background(Color.White)
                                 .fillMaxWidth()
                                 .windowInsetsPadding(WindowInsets.statusBars)
+                                .windowInsetsPadding(WindowInsets.navigationBars)
                                 .padding(start = 16.dp, end = 16.dp, top = 6.dp)
                         ) {
                             Text (

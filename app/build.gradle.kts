@@ -69,6 +69,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("androidx.compose.foundation:foundation:1.5.4")
     implementation("io.ktor:ktor-client-cio:3.1.1")
-    implementation("io.ktor:ktor-server-websockets:3.1.1")
-    implementation("io.ktor:ktor-server-netty:3.1.1")
+    implementation("io.ktor:ktor-client-websockets:3.1.1")
+    implementation("io.ktor:ktor-client-content-negotiation:3.1.1")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.1")
 }
