@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -31,7 +30,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -49,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import vku.ddd.social_network_fe.ui.components.Common.ValidateTextField
-import vku.ddd.social_network_fe.ui.components.DropdownMenuBox
 import java.util.Calendar
 
 @Composable
@@ -71,6 +67,9 @@ fun RegisterScreen(navController: NavHostController) {
     val genders = listOf("Male", "Female", "Other")
     var selectedGender by remember { mutableStateOf(genders[0]) }
     var expanded by remember { mutableStateOf(false) }
+    // Date of Birth selection
+    var selectedDate by remember { mutableStateOf("") }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     fun isValidEmail(email: String): Boolean {
         return Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -199,10 +198,6 @@ fun RegisterScreen(navController: NavHostController) {
                 }
             }
 
-            // Date of Birth selection
-            var selectedDate by remember { mutableStateOf("") }
-            var showDatePicker by remember { mutableStateOf(false) }
-
             if (showDatePicker) {
                 val context = LocalContext.current
                 val calendar = Calendar.getInstance()
@@ -239,7 +234,28 @@ fun RegisterScreen(navController: NavHostController) {
         val isHovered by interactionSource.collectIsPressedAsState()
         Spacer (modifier = Modifier .padding(14.dp))
         Button(
-            onClick = {},
+            onClick = {
+                lnameError.value = if (lname.value.isBlank()) "Last name is required" else null
+                fnameError.value = if (fname.value.isBlank()) "First name is required" else null
+                usernameError.value = if (username.value.isBlank()) "Username is required"
+                    else if (username.value.length <= 7) "Username must be at least 8 characters"
+                    else null;
+                passwordError.value = if (password.value.isBlank()) "Password cannot be blank"
+                    else if (password.value.length < 8) "Password must be at least 8 characters"
+                    else null;
+                passwordConfirmError.value = if (passwordConfirm.value != password.value) "Password doesn't match"
+                    else null;
+                if (
+                    lnameError.value == null &&
+                    fnameError.value == null &&
+                    usernameError.value == null &&
+                    passwordError.value == null &&
+                    passwordConfirmError.value == null &&
+                    selectedDate != ""
+                ) {
+                    navController.navigate("home")
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth(0.95f)
                 .height(70.dp)

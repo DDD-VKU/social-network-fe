@@ -61,8 +61,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    val lifecycle_version = "2.8.7"
-
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("androidx.navigation:navigation-compose:2.8.8")
@@ -70,4 +68,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("androidx.compose.foundation:foundation:1.5.4")
+    implementation("io.ktor:ktor-client-cio:3.1.1")
+    implementation("io.ktor:ktor-server-websockets:3.1.1")
+    implementation("io.ktor:ktor-server-netty:3.1.1")
 }
