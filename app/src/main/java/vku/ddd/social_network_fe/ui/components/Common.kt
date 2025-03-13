@@ -298,22 +298,28 @@ object Common {
                     .heightIn(min = 0.dp, max = 400.dp)
             ) {
                 items(4) { i->
-                    Image(
-                        painter = painterResource(
-                          when (i){
-                              0 -> R.drawable.uet
-                              1 -> R.drawable.hust
-                              2 -> R.drawable.uet
-                              else -> R.drawable.hust
-                          }
-                        ),
-                        contentDescription = "dsa",
-                        contentScale = ContentScale.Crop,
+                    Box (
                         modifier = Modifier
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable { navController.navigate("image-detail") }
-                    )
+                            .fillMaxWidth()
+                            .heightIn(min = 0.dp, max = 400.dp),
+                    ){
+                        Image(
+                            painter = painterResource(
+                                when (i){
+                                    0 -> R.drawable.uet
+                                    1 -> R.drawable.hust
+                                    2 -> R.drawable.uet
+                                    else -> R.drawable.hust
+                                }
+                            ),
+                            contentDescription = "dsa",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { navController.navigate("image-detail") }
+                        )
+                    }
                 }
             }
             LikeCommentShareCounter()
