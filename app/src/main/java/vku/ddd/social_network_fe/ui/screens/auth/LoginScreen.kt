@@ -80,7 +80,6 @@ fun LoginScreen(navController: NavHostController) {
             },
             label = { Text("Username") },
             isError = accError != null,
-
         )
         accError?.let {
             Text(text = it, color = Color.Red, fontSize = 14.sp, modifier = Modifier.padding(start = 16.dp))
