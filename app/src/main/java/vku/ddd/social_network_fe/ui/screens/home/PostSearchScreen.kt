@@ -77,11 +77,7 @@ fun PostSearchScreen(navController: NavHostController) {
             Divider(color = Color(0xFFE0E0E0))
         }
         items (20) {
-                i -> Common.Post1Image(navController = navController)
-            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-            Common.Post2Images(navController = navController)
-            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-            Common.Post3Images(navController)
+                i -> Common.MergedPostContent(navController = navController)
             Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
         }
     }

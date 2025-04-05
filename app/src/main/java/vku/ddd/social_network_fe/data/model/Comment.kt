@@ -7,9 +7,10 @@ data class Comment (
     val content: String,
     val userId: Long,
     val username: String,
-    val childComments: List<Comment>,
+    val childrenComments: MutableList<Comment>,
+    val parentCommentId: Long,
     val commentLevel: Long,
-    val createdAt: LocalDateTime,
+    val createdAt: String,
     val likeCount: Long,
     val dislikeCount: Long
 )

@@ -11,6 +11,8 @@ import androidx.compose.material.icons.filled.Comment
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,11 +24,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import vku.ddd.social_network_fe.R
+import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.components.Common.LikeCommentShareButtons
 import vku.ddd.social_network_fe.ui.components.Common.LikeCommentShareCounter
 
 @Composable
-fun ListImageScreen(navController: NavHostController) {
+fun ListImageScreen(navController: NavHostController, post: Post) {
+    val postState = remember { mutableStateOf(post) }
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
             Card(
@@ -59,8 +63,10 @@ fun ListImageScreen(navController: NavHostController) {
                         modifier = Modifier.padding(top = 8.dp)
                     )
 
-                    LikeCommentShareCounter()
-                    LikeCommentShareButtons(navController = navController)
+                    LikeCommentShareCounter(post = post)
+                    LikeCommentShareButtons(navController = navController, post = postState.value) { updatedPost ->
+                        postState.value = updatedPost
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                     Image(
                         painter = painterResource(id = R.drawable.hust),
@@ -73,8 +79,10 @@ fun ListImageScreen(navController: NavHostController) {
                     )
                     Text(text = "Đây là HUST", modifier = Modifier.padding(top = 8.dp))
 
-//                    LikeCommentShareCounter()
-                    LikeCommentShareButtons(navController = navController)
+                    LikeCommentShareCounter(post = post)
+                    LikeCommentShareButtons(navController = navController, post = postState.value) { updatedPost ->
+                        postState.value = updatedPost
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Image(
                         painter = painterResource(id = R.drawable.hcmus),
@@ -87,8 +95,10 @@ fun ListImageScreen(navController: NavHostController) {
                     )
                     Text(text = "Đây là UET", modifier = Modifier.padding(top = 8.dp))
 
-//                    LikeCommentShareCounter()
-                    LikeCommentShareButtons(navController = navController)
+                    LikeCommentShareCounter(post = post)
+                    LikeCommentShareButtons(navController = navController, post = postState.value) { updatedPost ->
+                        postState.value = updatedPost
+                    }
                 }
             }
         }

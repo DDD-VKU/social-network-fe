@@ -1,5 +1,7 @@
 package vku.ddd.social_network_fe.ui.layouts
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -33,14 +36,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
+import com.google.gson.Gson
+import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.components.Common
 import vku.ddd.social_network_fe.ui.components.TopNavItem
 import vku.ddd.social_network_fe.ui.screens.auth.LoginScreen
 import vku.ddd.social_network_fe.ui.screens.auth.RegisterScreen
 import vku.ddd.social_network_fe.ui.screens.home.*
+import java.net.URLDecoder
 
 @Composable
 fun Navigation(globalNavController: NavHostController, searchNavController: NavHostController?, mainNavigation: Boolean) {
@@ -56,14 +64,14 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
         if (mainNavigation) {
             var currentRoute = globalNavController.currentBackStackEntryAsState().value?.destination?.route
             if (!(currentRoute == "profile" ||
-                        currentRoute == "post" ||
+                        (currentRoute?.startsWith("post/") == true) ||
                         currentRoute == "search" ||
                         currentRoute == "post-create" ||
                         currentRoute == "login" ||
                         currentRoute == "register" ||
                         currentRoute == "setting" ||
                         currentRoute == "list-image" ||
-                        currentRoute == "image-detail")) {
+                        currentRoute?.startsWith("image-detail/") == true)) {
                 Column (
                     modifier = Modifier
                         .shadow(elevation = 5.dp)
@@ -133,8 +141,11 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
 
         NavHost(
             navController = if (mainNavigation) globalNavController else searchNavController!!,
-            startDestination = if (mainNavigation) "home" else "post-search"
+            startDestination = if (mainNavigation) "home" else "post-search",
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
+            val gson = Gson()
             if (mainNavigation) {
                 composable("home") { HomeScreen(globalNavController) }
                 composable("following_suggestion") { FollowingSuggestionScreen(globalNavController) }
@@ -142,12 +153,38 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
                 composable("notification") { NotificationScreen(globalNavController) }
                 composable("menu") { MenuScreen(globalNavController) }
                 composable("profile") { ProfileScreen(globalNavController) }
-                composable("post") { PostScreen(globalNavController) }
+                composable(
+                    "post/{postJson}",
+                    arguments = listOf(navArgument("postJson") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
+                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
+                    PostScreen(globalNavController, post)
+                }
                 composable("search") { SearchScreen(globalNavController) }
                 composable("post-create") { CreateUpdatePostScreen(globalNavController) }
-                composable("image-detail") { Common.ImageDetail(globalNavController) }
-                composable("setting"){ SettingScreen(globalNavController) }
-                composable("list-image"){ ListImageScreen(globalNavController) }
+                composable(
+                    "image-detail/{postJson}",
+                    arguments = listOf(navArgument("postJson") {type = NavType.StringType})
+                ) { backStackEntry ->
+                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
+                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
+                    Common.ImageDetail(globalNavController, post)
+                }
+                composable(
+                    "setting",
+                ) {
+                    SettingScreen(globalNavController)
+                }
+                composable(
+                    "list-image/{postJson}",
+                    arguments = listOf(navArgument("postJson") {type = NavType.StringType})
+                ) {
+                        backStackEntry ->
+                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
+                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
+                    ListImageScreen(globalNavController, post)
+                }
                 composable("login"){ LoginScreen(globalNavController) }
                 composable("register"){ RegisterScreen(globalNavController) }
             } else {

@@ -1,5 +1,6 @@
 package vku.ddd.social_network_fe.ui.screens.home
 
+import android.util.Log
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Image
@@ -23,20 +25,42 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import vku.ddd.social_network_fe.R
+import vku.ddd.social_network_fe.data.api.RetrofitClient
+import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.components.Common
-import vku.ddd.social_network_fe.ui.components.PostScreen.PostImage
+import vku.ddd.social_network_fe.ui.context.LocalPosts
+import vku.ddd.social_network_fe.ui.viewmodel.PostViewModel
 
 @Composable
 fun HomeScreen(navController: NavHostController) {
+
+    val post = remember { mutableStateOf<Post?>(null) }
+    val posts = remember { mutableStateListOf<Post>() }
+    val postsViewModel: PostViewModel = viewModel()
+    LaunchedEffect(Unit) {
+        post.value =
+            fetchPost(133)
+        while (posts.size < 10 && post.value != null) {
+            posts.add(fetchPost(133)!!)
+            posts.add(fetchPost(121)!!)
+        }
+        postsViewModel.loadData(posts)
+    }
+
     LazyColumn (
         modifier = Modifier.fillMaxSize()
-
     ) {
         items (1) { i ->
             Row (
@@ -82,22 +106,28 @@ fun HomeScreen(navController: NavHostController) {
             Spacer(Modifier.height(6.dp))
             Divider(color = Color(0xFFE0E0E0))
         }
-        items (20) {
-                i -> Common.Post1Image(navController = navController)
+        itemsIndexed(postsViewModel.posts) { _, p ->
+            Common.MergedPostContent(navController = navController, post = p)
             Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-            Common.Post2Images(navController = navController)
-            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-            Common.Post3Images(navController)
-            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-            Common.Post4Images(navController)
-
-//            i-> PostImage(navController, listOf(R.drawable.hust), columns = 1)
-//            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-//            PostImage(navController, listOf(R.drawable.hcmus, R.drawable.hust), columns = 2)
-//            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-//            PostImage(navController, listOf(R.drawable.hcmus, R.drawable.uet, R.drawable.hust), columns = 3)
-//            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
-//            PostImage(navController, listOf(R.drawable.hust, R.drawable.uet, R.drawable.hcmus, R.drawable.uet), columns = 2)
         }
+    }
+}
+
+suspend fun fetchPost(id: Long): Post? {
+    return try {
+        val response = RetrofitClient.instance.getPostById(id)
+
+        if (response.isSuccessful) {
+            val apiResponse = response.body()
+            Log.d("abc def", "Response: $apiResponse")
+
+            apiResponse?.data  // Trả về `Post`
+        } else {
+            Log.e("abc def", "Error: ${response.errorBody()?.string()}")
+            null
+        }
+    } catch (e: Exception) {
+        Log.e("abc def", "Exception: ${e.message}")
+        null
     }
 }
