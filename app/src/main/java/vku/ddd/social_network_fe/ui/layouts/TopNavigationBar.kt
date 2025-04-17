@@ -38,7 +38,7 @@ fun TopNavigationBar(
             val selected = item.route == backStackEntry.value?.destination?.route
             BottomNavigationItem(
                 selected = selected,
-                modifier = Modifier.padding(top = 15.dp),
+                modifier = Modifier.padding(top = 10.dp),
                 onClick = { onItemClick(item) },
                 selectedContentColor = Color.Blue,
                 unselectedContentColor = Color.Black,

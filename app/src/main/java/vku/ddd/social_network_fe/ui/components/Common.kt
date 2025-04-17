@@ -87,7 +87,7 @@ object Common {
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Like", color = if (isLiked.value) Color.Blue else textColor, fontSize = 14.sp)
+                Text(text = "Like", color = if (isLiked.value) Color.Blue else textColor, fontSize = 13.sp)
             }
             Button(
                 onClick = {
@@ -109,7 +109,7 @@ object Common {
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Comment", color = textColor, fontSize = 14.sp)
+                Text(text = "Comment", color = textColor, fontSize = 13.sp)
             }
             Button(
                 onClick = {},
@@ -129,7 +129,7 @@ object Common {
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = "Share", color = textColor, fontSize = 14.sp)
+                Text(text = "Share", color = textColor, fontSize = 13.sp)
             }
         }
     }

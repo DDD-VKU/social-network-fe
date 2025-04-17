@@ -48,7 +48,7 @@ fun ListImageScreen(navController: NavHostController) {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
-                            Text("Thisis Shira", fontWeight = FontWeight.Bold)
+                            Text("This is Shira", fontWeight = FontWeight.Bold)
                             Text("Genshin Impact Việt Nam · 3 phút trước", fontSize = 12.sp, color = Color.Gray)
                         }
                     }
