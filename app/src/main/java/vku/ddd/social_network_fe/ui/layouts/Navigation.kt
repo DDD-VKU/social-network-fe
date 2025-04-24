@@ -114,6 +114,7 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
                                 .background(Color.White)
                                 .fillMaxWidth()
                                 .windowInsetsPadding(WindowInsets.statusBars)
+                                .windowInsetsPadding(WindowInsets.navigationBars)
                                 .padding(start = 16.dp, end = 16.dp, top = 6.dp)
                         ) {
                             Text (

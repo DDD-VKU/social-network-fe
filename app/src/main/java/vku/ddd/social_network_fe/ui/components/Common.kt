@@ -487,7 +487,6 @@ object Common {
                     }
                 }
             }
-
             // Render like, comment and share counters and buttons
             LikeCommentShareCounter(post = postState.value)
             LikeCommentShareButtons(navController = navController, post = postState.value!!) { updatedPost ->

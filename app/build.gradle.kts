@@ -94,5 +94,4 @@ dependencies {
 
     // For Compose Multiplatform
     implementation("io.coil-kt.coil3:coil-network-ktor2:3.1.0")
-
 }
