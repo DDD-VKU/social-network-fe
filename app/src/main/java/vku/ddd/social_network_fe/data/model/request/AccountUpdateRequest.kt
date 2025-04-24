@@ -29,5 +29,5 @@ data class AccountUpdateRequest(
 
     var gender: Int = 0,
 
-    var dob: Date
+    var dob: String
 )

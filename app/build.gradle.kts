@@ -75,6 +75,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("androidx.compose.foundation:foundation:1.5.4")
+    implementation ("androidx.datastore:datastore-preferences:1.1.1")
     implementation("io.ktor:ktor-client-cio:3.1.1")
     implementation("io.ktor:ktor-client-websockets:3.1.1")
     implementation("io.ktor:ktor-client-content-negotiation:3.1.1")

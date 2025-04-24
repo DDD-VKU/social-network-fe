@@ -1,4 +1,4 @@
-package vku.ddd.social_network_fe.ui.screens.home
+package vku.ddd.social_network_fe.ui.screens.menu
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -40,6 +40,7 @@ import androidx.navigation.NavHostController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(navHostController: NavHostController) {
+
     Scaffold(
         topBar = {
             TopAppBar(

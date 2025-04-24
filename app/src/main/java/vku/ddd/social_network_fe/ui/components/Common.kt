@@ -1,6 +1,7 @@
 package vku.ddd.social_network_fe.ui.components
 
 // Android components
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
@@ -55,6 +56,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrokenImage
 import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbUp
@@ -104,6 +106,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
 import retrofit2.Retrofit
 import vku.ddd.social_network_be.dto.request.CommentCreateRequest
+import vku.ddd.social_network_be.dto.request.CommentUpdateRequest
 import vku.ddd.social_network_be.dto.request.ReactToPostRequest
 
 // Application specific
@@ -111,7 +114,6 @@ import vku.ddd.social_network_fe.R
 import vku.ddd.social_network_fe.data.api.RetrofitClient
 import vku.ddd.social_network_fe.data.model.Comment
 import vku.ddd.social_network_fe.data.model.Post
-import vku.ddd.social_network_fe.ui.context.LocalPosts
 import vku.ddd.social_network_fe.ui.viewmodel.PostViewModel
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -266,6 +268,8 @@ object Common {
 
     @Composable
     fun PostMetaData(navController: NavHostController, post: Post? = null) {
+        val postJson = gson.toJson(post)
+        val encodedPost = URLEncoder.encode(postJson, StandardCharsets.UTF_8.toString())
         val defaultDateTime = "2020-04-04T19:00:00" // Điều chỉnh lại default thành dạng ISO
         val dateTimeString = post?.createdAt ?: defaultDateTime
         val expanded = remember { mutableStateOf(false) }
@@ -294,7 +298,16 @@ object Common {
                     modifier = Modifier
                         .size(40.dp)
                         .border(1.dp, Color.Black, shape = CircleShape)
-                ) { }
+                ) {
+                    AsyncImage(
+                        model = "http://10.0.2.2:8080/social-network/api/uploads/images/${post!!.avatarId}",
+                        contentDescription = null,
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                    )
+                }
                 Spacer(Modifier.width(10.dp))
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -328,14 +341,17 @@ object Common {
                 ) {
                     DropdownMenuItem(
                         text = { Text(text = "Edit") },
-                        onClick = { expanded.value = false }
+                        onClick = {
+                            expanded.value = false
+                            navController.navigate("post-update/${encodedPost}")
+                        }
                     )
                     DropdownMenuItem(
                         text = { Text(text = "Delete") },
                         onClick = {
                             expanded.value = false
                             coroutineScope.launch {
-                                val response = RetrofitClient.instance.deletePost(post!!.id)
+                                val response = RetrofitClient.instance!!.deletePost(post!!.id)
                                 if (response.isSuccessful) {
                                     viewModel.removePost(post.id)
                                     Toast.makeText(context, response.body()?.message, Toast.LENGTH_SHORT).show()
@@ -368,9 +384,9 @@ object Common {
             )
 
             // Check if there are children posts to determine which layout to show
-            if (post?.childrenPosts!!.isEmpty()) {
+            if (post?.childrenPosts!!.isEmpty() && post.imageId != 0L) {
                 // No children posts – display the main post image
-                val imageUrl = "http://10.0.2.2:8080/social-network/api/uploads/images/${encodedPost}"
+                val imageUrl = "http://10.0.2.2:8080/social-network/api/uploads/images/${post.imageId}"
                 AsyncImage(
                     model = imageUrl,
                     contentDescription = "Post Image",
@@ -485,11 +501,14 @@ object Common {
         level: Int = 0,
         comment: Comment? = null,
         onChangeCommentParentId: (Long, Long) -> Unit,
+        onEditComment: (Comment) -> Unit,
+        onDeleteComment: (Comment) -> Unit
     ) {
         // Local state for like button
         val isLiked = remember { mutableStateOf(false) }
         // Cap the indentation to avoid excessive nesting visually
         val mutableLevel = if (level >= 3) 2 else level
+        val expanded = remember { mutableStateOf(false) }
 
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
@@ -501,15 +520,25 @@ object Common {
                 )
             ) {
                 // Avatar placeholder
-                Box(
+                Box (
                     modifier = Modifier
                         .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color.LightGray)
-                )
+                        .border(1.dp, Color.Black, shape = CircleShape)
+                ) {
+                    AsyncImage(
+                        model = "http://10.0.2.2:8080/social-network/api/uploads/images/${comment!!.avatarId}",
+                        contentDescription = null,
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                    )
+                }
                 Spacer(modifier = Modifier.width(8.dp))
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    // Comment content container
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                ){
                     Column(
                         modifier = Modifier
                             .background(color = Color(0xFFE0E0E0), shape = RoundedCornerShape(14.dp))
@@ -574,6 +603,39 @@ object Common {
                         }
                     }
                 }
+                Box {
+                    IconButton(
+                        onClick = { expanded.value = true },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreHoriz,
+                            contentDescription = "More options"
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = expanded.value,
+                        onDismissRequest = { expanded.value = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = {
+                                Text("Edit")
+                            },
+                            onClick = {
+                                expanded.value = false
+                                onEditComment(comment!!)
+                            })
+                        DropdownMenuItem(
+                            text = {
+                                Text("Delete")
+                            },
+                            onClick = {
+                                expanded.value = false
+                                onDeleteComment(comment!!)
+                            })
+                    }
+                }
             }
 
             // Debug logging to check child comments
@@ -584,13 +646,14 @@ object Common {
                 Comment(
                     level = level + 1,
                     comment = child,
-                    onChangeCommentParentId = onChangeCommentParentId
+                    onChangeCommentParentId = onChangeCommentParentId,
+                    onEditComment = onEditComment,
+                    onDeleteComment = onDeleteComment
                 )
                 Log.d("Comment Debug", "Rendered child comment of parent ID: ${comment?.id}")
             }
         }
     }
-
 
     @Composable
     fun SearchItem(navController: NavHostController) {
@@ -718,7 +781,7 @@ object Common {
     suspend fun fetchImage(id: Long): Bitmap? {
         return withContext(Dispatchers.IO) {
             try {
-                val response = RetrofitClient.instance.getImage(id)
+                val response = RetrofitClient.instance!!.getImage(id)
                 if (response.isSuccessful) {
                     val body: ResponseBody? = response.body()
                     if (body != null) {
@@ -741,7 +804,7 @@ object Common {
 
     suspend fun reactToPost(post: Post, request: ReactToPostRequest): Post? {
         return try {
-            val response = RetrofitClient.instance.reactPost(post.id, request)
+            val response = RetrofitClient.instance!!.reactPost(post.id, request)
             if (response.isSuccessful) {
                 Log.d("API Response", "Updated Post: ${response.body()?.data?.likesCount}")
                 response.body()?.data
@@ -755,9 +818,9 @@ object Common {
         }
     }
 
-    suspend fun createComment(post: Post, request: CommentCreateRequest): Comment? {
+    suspend fun createComment(request: CommentCreateRequest): Comment? {
         return try {
-            val response = RetrofitClient.instance.createComment(request)
+            val response = RetrofitClient.instance!!.createComment(request)
             if (response.isSuccessful) {
                 Log.d("API Response", "Created comment: ${response.body()?.data?.id}")
                 response.body()?.data
@@ -768,6 +831,39 @@ object Common {
         } catch (ex: Exception) {
             Log.e("abc def", "Exception: ${ex.message}")
             null
+        }
+    }
+
+    suspend fun editComment(context: Context, request: CommentUpdateRequest): Comment? {
+        return try {
+            val response = RetrofitClient.instance!!.updateComment(request.commentId, request)
+            if (response.isSuccessful) {
+                Log.d("API Response", "Updated comment: ${response.body()?.data?.id}")
+                response.body()?.data
+            } else {
+                Log.e("abc def", "Error: ${response.errorBody()?.string()}")
+                Toast.makeText(context, "Something wrong!", Toast.LENGTH_SHORT).show()
+                null
+            }
+        } catch (ex: Exception) {
+            Toast.makeText(context, "Something wrong!", Toast.LENGTH_SHORT).show()
+            null
+        }
+    }
+
+    suspend fun deleteComment(context: Context, id: Long): Boolean {
+        try {
+            val response = RetrofitClient.instance!!.deleteComment(id)
+            if (response.isSuccessful) {
+                Toast.makeText(context, "Comment deleted successfully", Toast.LENGTH_SHORT).show()
+                return true
+            } else {
+                Toast.makeText(context, "Can't delete comment", Toast.LENGTH_SHORT).show()
+                return false
+            }
+        } catch (e: Exception) {
+            Toast.makeText(context, "Can't delete comment", Toast.LENGTH_SHORT).show()
+            return false
         }
     }
 }

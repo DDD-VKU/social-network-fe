@@ -8,6 +8,7 @@ data class Post(
     var username: String,
     var userFname: String,
     var userLname: String,
+    var avatarId: Long,
     var imageId: Long,
     var likesCount: Long,
     var dislikeCount: Long,

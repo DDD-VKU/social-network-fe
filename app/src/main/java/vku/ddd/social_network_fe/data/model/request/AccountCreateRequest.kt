@@ -28,5 +28,5 @@ data class AccountCreateRequest(
     var gender: Int = 0,
 
     @field:NotNull
-    var dob: Date
+    var dob: String
 )

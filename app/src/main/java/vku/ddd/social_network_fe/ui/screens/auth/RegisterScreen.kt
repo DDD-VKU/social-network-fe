@@ -2,6 +2,7 @@ package vku.ddd.social_network_fe.ui.screens.auth
 
 import android.app.DatePickerDialog
 import android.util.Patterns
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,8 +47,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
+import okhttp3.internal.format
+import vku.ddd.social_network_be.dto.request.AccountCreateRequest
+import vku.ddd.social_network_fe.data.api.RetrofitClient
+import vku.ddd.social_network_fe.data.datastore.AccountDataStore
+import vku.ddd.social_network_fe.data.datastore.TokenDataStore
+import vku.ddd.social_network_fe.data.model.Account
 import vku.ddd.social_network_fe.ui.components.Common.ValidateTextField
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 @Composable
 fun RegisterScreen(navController: NavHostController) {
@@ -70,6 +81,9 @@ fun RegisterScreen(navController: NavHostController) {
     // Date of Birth selection
     var selectedDate by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     fun isValidEmail(email: String): Boolean {
         return Patterns.EMAIL_ADDRESS.matcher(email).matches()
@@ -205,7 +219,7 @@ fun RegisterScreen(navController: NavHostController) {
                 DatePickerDialog(
                     context,
                     { _, year, month, dayOfMonth ->
-                        selectedDate = "$dayOfMonth/${month + 1}/$year"
+                        selectedDate = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year)
                         showDatePicker = false
                     },
                     calendar.get(Calendar.YEAR),
@@ -253,7 +267,49 @@ fun RegisterScreen(navController: NavHostController) {
                     passwordConfirmError.value == null &&
                     selectedDate != ""
                 ) {
-                    navController.navigate("home")
+                    val tokenDataStore = TokenDataStore(context)
+                    val accountDataStore = AccountDataStore(context)
+                    val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    val outputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    val date = inputFormat.parse(selectedDate)
+                    val formattedDate = outputFormat.format(date)
+                    coroutineScope.launch {
+                        val request = AccountCreateRequest(
+                            username = username.value,
+                            password = password.value,
+                            passwordConfirm = passwordConfirm.value,
+                            fname = fname.value,
+                            lname = lname.value,
+                            email = email.value,
+                            gender = genders.indexOf(selectedGender),
+                            dob = formattedDate
+                        )
+                        val response = RetrofitClient.authInstance.register(request)
+                        if (response.isSuccessful) {
+                            val token = response.body()?.data?.token.orEmpty()
+                            if (token.length > 0) {
+                                val expireTime = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000)
+                                tokenDataStore.saveToken(token, expireTime)
+                                RetrofitClient.setToken(token)
+                                val account = response.body()?.data!!.account
+                                accountDataStore.saveAccount(
+                                    Account(
+                                        id = account.id,
+                                        username = account.username,
+                                        fname = account.fname,
+                                        lname = account.lname,
+                                        email = account.email,
+                                        avatar = account.avatar
+                                    )
+                                )
+                                navController.navigate("home")
+                            } else {
+                                Toast.makeText(context, "Something went wrong", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            Toast.makeText(context, "Something went wrong", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             },
             modifier = Modifier

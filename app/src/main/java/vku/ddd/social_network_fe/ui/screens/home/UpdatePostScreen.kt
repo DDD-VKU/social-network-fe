@@ -1,15 +1,16 @@
 package vku.ddd.social_network_fe.ui.screens.home
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,12 +20,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -59,15 +58,17 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import vku.ddd.social_network_be.dto.request.PostCreateRequest
@@ -75,31 +76,68 @@ import vku.ddd.social_network_fe.data.api.RetrofitClient
 import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.components.DropdownMenuBox
 import vku.ddd.social_network_fe.data.utils.FileUploadUtils.urisToMultipartParts
+import vku.ddd.social_network_fe.ui.components.Common.gson
+import java.io.File
+import java.io.FileOutputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
-fun CreateUpdatePostScreen(navController: NavHostController, post: Post? = null) {
-    var postContent by remember { mutableStateOf("") }
-    val childPostContents = remember { mutableStateListOf("") }
+fun UpdatePostScreen(navController: NavHostController, post: Post) {
+    var postContent by remember { mutableStateOf(post?.caption ?: "") }
+    remember { mutableStateListOf<String>() }
     var selectedPrivacy by remember { mutableStateOf("Public") }
     val privacyOptions = listOf("Public", "Followers", "Private")
-    var selectedImages by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var selectedImages by remember { mutableStateOf(mutableListOf<Uri>()) }
+    val childPostContents = remember { mutableStateListOf<String>() }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val postJson = gson.toJson(post)
+    val encodedPost = URLEncoder.encode(postJson, StandardCharsets.UTF_8.toString())
+    val loadPostSuccess = remember { mutableStateOf(false) }
 
-    // Keep child captions in sync with selected images
+// 2. Tách thành 2 LaunchedEffect riêng
+// Effect 1: Chỉ xử lý load dữ liệu từ post
+    LaunchedEffect(post) {
+        selectedImages.clear()
+        childPostContents.clear()
+
+        post?.childrenPosts?.forEach { childPost ->
+            downloadImageAndGetUri(context, "http://10.0.2.2:8080/social-network/api/uploads/images/${childPost.imageId}")?.let { uri ->
+                if (!selectedImages.any { it.toString() == uri.toString() }) {
+                    selectedImages.add(uri)
+                }
+            }
+            childPostContents.add(childPost.caption ?: "")
+        }
+    }
+
+// Effect 2: Xử lý đồng bộ caption và ảnh
     LaunchedEffect(selectedImages.size) {
-        while (childPostContents.size < selectedImages.size) {
-            childPostContents.add("")
+        when {
+            selectedImages.size <= 1 -> {
+                childPostContents.clear()
+            }
+            childPostContents.size < selectedImages.size -> {
+                repeat(selectedImages.size - childPostContents.size) {
+                    childPostContents.add("")
+                }
+            }
+            childPostContents.size > selectedImages.size -> {
+                repeat(childPostContents.size - selectedImages.size) {
+                    childPostContents.removeAt(childPostContents.lastIndex)
+                }
+            }
         }
-        while (childPostContents.size > selectedImages.size) {
-            childPostContents.removeAt(childPostContents.lastIndex)
-        }
+        Log.d("Synced captions", childPostContents.toList().toString())
     }
 
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10),
         onResult = { uris ->
-            selectedImages = uris
+            selectedImages = uris.toMutableList()
         }
     )
 
@@ -114,7 +152,7 @@ fun CreateUpdatePostScreen(navController: NavHostController, post: Post? = null)
             TopAppBar(
                 title = {
                     Text(
-                        "Create your post",
+                        if (post != null) "Update your post" else "Create your post",
                         fontSize = 20.sp,
                         color = Color.Black
                     )
@@ -134,7 +172,7 @@ fun CreateUpdatePostScreen(navController: NavHostController, post: Post? = null)
                             containerColor = Color.Transparent
                         )
                     ) {
-                        Text("POST", color = Color.Blue)
+                        Text(if (post == null) "POST" else "UPDATE", color = Color.Blue)
                     }
                 },
                 backgroundColor = Color.Transparent,
@@ -214,7 +252,7 @@ fun CreateUpdatePostScreen(navController: NavHostController, post: Post? = null)
                             )
                             if (selectedImages.size > 1) {
                                 TextField(
-                                    value = childPostContents.getOrNull(index) ?: "",
+                                    value = childPostContents.toList().getOrNull(index) ?: "",
                                     onValueChange = { childPostContents[index] = it },
                                     placeholder = {
                                         Text("Caption", modifier = Modifier.offset(x = 2.dp))
@@ -247,6 +285,7 @@ fun CreateUpdatePostScreen(navController: NavHostController, post: Post? = null)
                     imagePicker.launch(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
+                    Log.d("images: ", selectedImages.size.toString())
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF008000)),
@@ -262,10 +301,11 @@ fun CreateUpdatePostScreen(navController: NavHostController, post: Post? = null)
                     // Clear and set captions as needed
                     createRequest.caption.clear()
                     createRequest.caption.add(postContent)
-                    if (childPostContents.size > 1) {
-                        createRequest.caption.addAll(childPostContents)
-                    }
+                    createRequest.caption.addAll(childPostContents)
                     createRequest.privacy = selectedPrivacy.uppercase()
+                    Log.d("captions: total images: ", selectedImages.size.toString())
+                    Log.d("captions: ", createRequest.caption.toList().toString())
+
 
                     // Convert createRequest to JSON string
                     val gson = Gson()
@@ -278,34 +318,63 @@ fun CreateUpdatePostScreen(navController: NavHostController, post: Post? = null)
                     // Make the API call via Retrofit
                     coroutineScope.launch {
                         try {
-                            val response = RetrofitClient.instance.createPost(request, imageParts)
-                            if (response.isSuccessful) {
-                                if (response.body()?.data != null) {
-                                    Toast.makeText(
-                                        context,
-                                        response.body()?.message ?: "Post created successfully!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    Log.d("new post", response.body()?.data.toString())
-                                    navController.navigate("home") {
-                                        popUpTo("post-create") { inclusive = true }
+                            if (post == null) {
+                                val response = RetrofitClient.instance.createPost(request, imageParts)
+                                if (response.isSuccessful) {
+                                    if (response.body()?.data != null) {
+                                        Toast.makeText(
+                                            context,
+                                            response.body()?.message ?: "Post created successfully!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        Log.d("new post", response.body()?.data.toString())
+                                        navController.navigate("home") {
+                                            popUpTo("post-create") { inclusive = true }
+                                        }
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            response.body()?.message ?: "Something wrong",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 } else {
                                     Toast.makeText(
                                         context,
-                                        response.body()?.message ?: "Something wrong",
+                                        "Post failed: ${response.code()}",
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
                             } else {
-                                Toast.makeText(
-                                    context,
-                                    "Post failed: ${response.code()}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                val response = RetrofitClient.instance.updatePost(post.id, request, imageParts)
+                                if (response.isSuccessful) {
+                                    if (response.body()?.data != null) {
+                                        Toast.makeText(
+                                            context,
+                                            response.body()?.message ?: "Post updated successfully!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        Log.d("updated post", response.body()?.data.toString())
+                                        navController.navigate("home") {
+                                            popUpTo("post-update/${encodedPost}") { inclusive = true }
+                                        }
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            response.body()?.message ?: "Something wrong",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Post failed: ${response.code()}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         } catch (e: Exception) {
-                            Log.d("Create post error", e.message.toString())
+                            Log.e("Update post error", e.message.toString())
                             Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
                         }
                     }
@@ -314,8 +383,37 @@ fun CreateUpdatePostScreen(navController: NavHostController, post: Post? = null)
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Blue),
                 shape = RoundedCornerShape(6.dp)
             ) {
-                Text("POST", color = Color.White)
+                Text(if (post == null) "POST" else "UPDATE", color = Color.White)
             }
+        }
+    }
+}
+
+suspend fun downloadImageAndGetUri(context: Context, imageUrl: String): Uri? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val url = URL(imageUrl)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connect()
+            val inputStream = connection.inputStream
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+
+            // Lưu ảnh tạm thời vào cache và lấy Uri
+            val file = File.createTempFile("temp_image", ".jpg", context.cacheDir)
+            val out = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            out.flush()
+            out.close()
+
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                file
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 }

@@ -43,7 +43,7 @@ interface ApiService {
     @PUT("api/users/me")
     suspend fun updateAccount(
         @Header("Authorization") token: String,
-        @Part("request") request: AccountUpdateRequest,
+        @Part("request") request: RequestBody,
         @Part("avatar") avatar: MultipartBody.Part?
     ): Response<ApiResponse<Account>>
 
@@ -55,6 +55,9 @@ interface ApiService {
 
     @GET("api/users/{id}/following")
     suspend fun getFollowing(@Path("id") id: Long): Response<ApiResponse<List<User>>>
+
+    @GET("api/users/")
+    suspend fun getUsers(): Response<ApiResponse<List<User>>>
 
     // Post
     @GET("api/posts")
@@ -70,11 +73,12 @@ interface ApiService {
         @Part imageFiles: List<MultipartBody.Part?>
     ): Response<ApiResponse<Post>>
 
+    @Multipart
     @PUT("api/posts/{id}")
     suspend fun updatePost(
         @Path("id") id: Long,
-        @Part("request") request: PostCreateRequest,
-        @Part("images") imageFiles: List<MultipartBody.Part?>
+        @Part("request") request: RequestBody,
+        @Part imageFiles: List<MultipartBody.Part?>
     ): Response<ApiResponse<Post>>
 
     @DELETE("api/posts/{id}")
@@ -85,6 +89,9 @@ interface ApiService {
 
     @POST("api/posts/react/{id}")
     suspend fun reactPost(@Path("id") id: Long, @Body request: ReactToPostRequest): Response<ApiResponse<Post>>
+
+    @GET("api/posts/creator/{id}")
+    suspend fun getPostByCreatorId(@Path("id") id: Long): Response<ApiResponse<List<Post>>>
 
     // Comment
     @POST("api/comments")

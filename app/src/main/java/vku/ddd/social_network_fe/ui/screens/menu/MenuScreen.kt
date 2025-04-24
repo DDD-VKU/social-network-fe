@@ -1,5 +1,7 @@
-package vku.ddd.social_network_fe.ui.screens.home
+package vku.ddd.social_network_fe.ui.screens.menu
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -32,16 +35,40 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
+import vku.ddd.social_network_fe.data.api.RetrofitClient
+import vku.ddd.social_network_fe.data.datastore.AccountDataStore
+import vku.ddd.social_network_fe.data.datastore.TokenDataStore
+import vku.ddd.social_network_fe.data.model.Account
 
 @Composable
 fun MenuScreen(navController: NavHostController) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var account by remember { mutableStateOf<Account?>(null) }
+
+    LaunchedEffect(Unit) {
+        account = AccountDataStore(context).getAccount()
+        Log.d("Login account", account.toString())
+    }
+
     Column (
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -100,17 +127,27 @@ fun MenuScreen(navController: NavHostController) {
                     .padding(horizontal = 8.dp, vertical = 14.dp)
                     .fillMaxWidth()
                     .clickable {
-                        navController.navigate("profile")
+                        navController.navigate("profile/${account!!.id}")
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box (
                     modifier = Modifier.size(36.dp)
-                        .border(width =  1.dp, color =  Color.Black, shape =  CircleShape)
-                )
+                        .border(width =  1.dp, color =  Color.LightGray, shape =  CircleShape)
+                ) {
+                    if (account != null)
+                    AsyncImage(
+                        model = "http://10.0.2.2:8080/social-network/api/uploads/images/${account!!.avatar}",
+                        contentDescription = null,
+                        contentScale = ContentScale.FillWidth,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
+                    )
+                }
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    text = "Nguyễn Văn A",
+                    text = account?.let { it.lname + " " + it.fname } ?: "Nguyễn Văn A",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = Color.Black)
@@ -197,7 +234,7 @@ fun MenuScreen(navController: NavHostController) {
 
                     ) {
                         Column (
-                            modifier = Modifier.clickable { navController.navigate("list-image") },
+                            modifier = Modifier.clickable { navController.navigate("profile/${account!!.id}") },
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Icon(
@@ -248,7 +285,15 @@ fun MenuScreen(navController: NavHostController) {
                 Button (
                     modifier = Modifier
                         .fillMaxWidth(),
-                    onClick = { navController.navigate("login")},
+                    onClick = {
+                        navController.navigate("login")
+                        coroutineScope.launch {
+                            val token = TokenDataStore(context).getToken()
+                            RetrofitClient.authInstance.logout(token!!)
+                            AccountDataStore(context).clearAccount()
+                            TokenDataStore(context).clearToken()
+                        }
+                  },
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE0E0E0))
                 )
                 { Text("Đăng xuất", color = Color.Black ,fontSize = 16.sp, fontWeight = FontWeight.Bold) }

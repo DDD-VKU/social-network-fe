@@ -1,4 +1,4 @@
-package vku.ddd.social_network_fe.ui.screens.home
+package vku.ddd.social_network_fe.ui.screens.search
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
