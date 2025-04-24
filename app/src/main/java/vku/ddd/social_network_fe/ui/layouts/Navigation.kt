@@ -1,5 +1,6 @@
 package vku.ddd.social_network_fe.ui.layouts
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,26 +26,49 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
+import com.google.gson.Gson
+import vku.ddd.social_network_fe.data.api.RetrofitClient
+import vku.ddd.social_network_fe.data.datastore.AccountDataStore
+import vku.ddd.social_network_fe.data.datastore.TokenDataStore
+import vku.ddd.social_network_fe.data.model.Account
+import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.components.Common
 import vku.ddd.social_network_fe.ui.components.TopNavItem
 import vku.ddd.social_network_fe.ui.screens.auth.LoginScreen
 import vku.ddd.social_network_fe.ui.screens.auth.RegisterScreen
 import vku.ddd.social_network_fe.ui.screens.home.*
+import vku.ddd.social_network_fe.ui.screens.menu.MenuScreen
+import vku.ddd.social_network_fe.ui.screens.menu.SettingScreen
+import vku.ddd.social_network_fe.ui.screens.notification.NotificationScreen
+import vku.ddd.social_network_fe.ui.screens.post.ListImageScreen
+import vku.ddd.social_network_fe.ui.screens.post.PostScreen
+import vku.ddd.social_network_fe.ui.screens.profile.ProfileScreen
+import vku.ddd.social_network_fe.ui.screens.search.PostSearchScreen
+import vku.ddd.social_network_fe.ui.screens.search.SearchScreen
+import vku.ddd.social_network_fe.ui.screens.search.UserSearchScreen
+import java.net.URLDecoder
 
 @Composable
 fun Navigation(globalNavController: NavHostController, searchNavController: NavHostController?, mainNavigation: Boolean) {
+    val context = LocalContext.current
     val items = listOf(
         TopNavItem(name = "Home", route = "home", icon = Icons.Filled.Home),
         TopNavItem(name = "Follow", route = "following_suggestion", icon = Icons.Filled.Person),
@@ -52,19 +76,32 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
         TopNavItem(name = "Notification", route = "notification", icon = Icons.Filled.Notifications),
         TopNavItem(name = "Menu", route = "menu", icon = Icons.Filled.Menu)
     )
+    val toLoginScreen = remember { mutableStateOf(false) }
+    val isReady = remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val loginAccount: Account? = AccountDataStore(context).getAccount()
+        toLoginScreen.value = loginAccount == null
+        val token : String? = TokenDataStore(context).getToken()
+        if (token != null)
+            RetrofitClient.setToken(token)
+        isReady.value = true
+    }
 
     Column {
         if (mainNavigation) {
             var currentRoute = globalNavController.currentBackStackEntryAsState().value?.destination?.route
             if (!(currentRoute == "profile" ||
-                        currentRoute == "post" ||
+                        (currentRoute?.startsWith("post/") == true) ||
                         currentRoute == "search" ||
                         currentRoute == "post-create" ||
                         currentRoute == "login" ||
                         currentRoute == "register" ||
                         currentRoute == "setting" ||
                         currentRoute == "list-image" ||
-                        currentRoute == "image-detail")) {
+                        currentRoute?.startsWith("post-update/") == true ||
+                        currentRoute?.startsWith("profile/") == true ||
+                        currentRoute?.startsWith("image-detail/") == true)) {
                 Column (
                     modifier = Modifier
                         .shadow(elevation = 5.dp)
@@ -132,24 +169,74 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
 
             }
         }
-
+        if (isReady.value)
         NavHost(
             navController = if (mainNavigation) globalNavController else searchNavController!!,
-            startDestination = if (mainNavigation) "home" else "post-search"
+            startDestination = if (mainNavigation)
+                if (toLoginScreen.value)
+                    "login"
+                else
+                    "home"
+            else "post-search",
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
+            val gson = Gson()
             if (mainNavigation) {
                 composable("home") { HomeScreen(globalNavController) }
                 composable("following_suggestion") { FollowingSuggestionScreen(globalNavController) }
                 composable("message") { MessageScreen() }
                 composable("notification") { NotificationScreen(globalNavController) }
                 composable("menu") { MenuScreen(globalNavController) }
-                composable("profile") { ProfileScreen(globalNavController) }
-                composable("post") { PostScreen(globalNavController) }
+                composable(
+                    "profile/{id}",
+                    arguments = listOf(navArgument("id") {type = NavType.LongType})
+                ) { backStackEntry ->
+                    val accountId = backStackEntry.arguments?.getLong("id")
+                    if (accountId != null) {
+                        ProfileScreen(globalNavController, accountId)
+                    }
+                }
+                composable(
+                    "post/{postJson}",
+                    arguments = listOf(navArgument("postJson") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
+                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
+                    PostScreen(globalNavController, post)
+                }
                 composable("search") { SearchScreen(globalNavController) }
-                composable("post-create") { CreateUpdatePostScreen(globalNavController) }
-                composable("image-detail") { Common.ImageDetail(globalNavController) }
-                composable("setting"){ SettingScreen(globalNavController) }
-                composable("list-image"){ ListImageScreen(globalNavController) }
+                composable("post-create") { CreatePostScreen(globalNavController) }
+                composable(
+                    "post-update/{postJson}",
+                    arguments = listOf(navArgument("postJson") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
+                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
+                    UpdatePostScreen(globalNavController, post)
+                }
+                composable(
+                    "image-detail/{postJson}",
+                    arguments = listOf(navArgument("postJson") {type = NavType.StringType})
+                ) { backStackEntry ->
+                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
+                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
+                    Common.ImageDetail(globalNavController, post)
+                }
+                composable(
+                    "setting",
+                ) {
+                    SettingScreen(globalNavController)
+                }
+                composable(
+                    "list-image/{postJson}",
+                    arguments = listOf(navArgument("postJson") {type = NavType.StringType})
+                ) {
+                        backStackEntry ->
+                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
+                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
+                    ListImageScreen(globalNavController, post)
+                }
                 composable("login"){ LoginScreen(globalNavController) }
                 composable("register"){ RegisterScreen(globalNavController) }
             } else {

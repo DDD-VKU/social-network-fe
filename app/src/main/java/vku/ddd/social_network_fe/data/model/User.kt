@@ -5,6 +5,7 @@ data class User(
     val fname: String,
     val lname: String,
     val username: String,
+    val avatar: Long,
     val followersCount: Long,
     val followingCount: Long
 )

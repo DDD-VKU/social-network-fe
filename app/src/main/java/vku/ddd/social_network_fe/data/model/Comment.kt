@@ -4,12 +4,14 @@ import java.time.LocalDateTime
 
 data class Comment (
     val id: Long,
-    val content: String,
+    var content: String,
     val userId: Long,
     val username: String,
-    val childComments: List<Comment>,
+    var childrenComments: MutableList<Comment>,
+    var parentCommentId: Long,
     val commentLevel: Long,
-    val createdAt: LocalDateTime,
+    val createdAt: String,
     val likeCount: Long,
-    val dislikeCount: Long
+    val dislikeCount: Long,
+    val avatarId: Long,
 )

@@ -28,11 +28,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -40,6 +40,13 @@ android {
 
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.15"
+    }
+
+    packagingOptions {
+        resources {
+            excludes += "META-INF/NOTICE.md"
+            excludes += "META-INF/LICENSE.md"
+        }
     }
 }
 
@@ -68,8 +75,23 @@ dependencies {
     implementation("androidx.compose.material:material:1.7.8")
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
     implementation("androidx.compose.foundation:foundation:1.5.4")
+    implementation ("androidx.datastore:datastore-preferences:1.1.1")
     implementation("io.ktor:ktor-client-cio:3.1.1")
     implementation("io.ktor:ktor-client-websockets:3.1.1")
     implementation("io.ktor:ktor-client-content-negotiation:3.1.1")
     implementation("io.ktor:ktor-serialization-kotlinx-json:3.1.1")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation ("jakarta.json:jakarta.json-api:2.1.3")
+    implementation("org.hibernate.validator:hibernate-validator:9.0.0.CR1")
+    implementation("jakarta.el:jakarta.el-api:5.0.0")
+    // Core Coil 3
+    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
+
+    // Optional network modules
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
+    implementation("io.coil-kt.coil3:coil-gif:3.1.0") // For GIF support
+
+    // For Compose Multiplatform
+    implementation("io.coil-kt.coil3:coil-network-ktor2:3.1.0")
 }

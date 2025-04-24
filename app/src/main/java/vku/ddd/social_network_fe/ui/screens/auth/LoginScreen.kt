@@ -1,5 +1,7 @@
 package vku.ddd.social_network_fe.ui.screens.auth
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.ScrollableState
@@ -23,25 +25,37 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
+import vku.ddd.social_network_be.dto.request.AuthenticateRequest
+import vku.ddd.social_network_fe.data.api.RetrofitClient
+import vku.ddd.social_network_fe.data.datastore.AccountDataStore
+import vku.ddd.social_network_fe.data.datastore.TokenDataStore
+import vku.ddd.social_network_fe.data.model.Account
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
+    val context = LocalContext.current
     var acc by remember { mutableStateOf("") }
     var pass by remember { mutableStateOf("") }
     var passError by remember { mutableStateOf<String?>(null) }
     var accError by  remember { mutableStateOf<String?>(null) }
     var isError by  remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    val loginFailed = remember { mutableStateOf(false) }
 
     Column ( modifier = Modifier
         .fillMaxSize()
@@ -98,7 +112,6 @@ fun LoginScreen(navController: NavHostController) {
                 pass = it
                 passError = when {
                     it.isBlank() -> "Can't empty"
-                    it.length < 8 -> "Can't less than 8 character"
                     else -> null;
                 }
             },
@@ -113,6 +126,14 @@ fun LoginScreen(navController: NavHostController) {
         val interactionSource = remember { MutableInteractionSource() }
         val isHovered by interactionSource.collectIsPressedAsState()
         Spacer (modifier = Modifier .padding(14.dp))
+        if (loginFailed.value) {
+            Text (
+                text = "Wrong username or password",
+                color = Color.Red,
+                fontSize = 14.sp,
+            )
+            Spacer (modifier = Modifier .padding(10.dp))
+        }
         Button(
             onClick = {
                 // Kiểm tra trước khi cho phép đăng nhập
@@ -122,10 +143,40 @@ fun LoginScreen(navController: NavHostController) {
                     pass.length < 8 -> "Can't less than 8 character"
                     else -> null
                 }
-
+                val tokenDataStore = TokenDataStore(context)
+                val accountDataStore = AccountDataStore(context)
                 if (accError == null && passError == null) {
-                    // Thực hiện hành động khi hợp lệ
-                    navController.navigate("home")
+                    coroutineScope.launch {
+                        val request = AuthenticateRequest(
+                            username = acc,
+                            password = pass
+                        )
+                        val response = RetrofitClient.authInstance.authenticate(request)
+                        if (response.isSuccessful) {
+                            val token = response.body()?.data?.token.orEmpty()
+                            if (token.length > 0) {
+                                val expireTime = System.currentTimeMillis() + (7 * 24 * 60 * 60 * 1000)
+                                tokenDataStore.saveToken(token, expireTime)
+                                RetrofitClient.setToken(token)
+                                val account = response.body()?.data!!.account
+                                accountDataStore.saveAccount(
+                                    Account(
+                                        id = account.id,
+                                        username = account.username,
+                                        fname = account.fname,
+                                        lname = account.lname,
+                                        email = account.email,
+                                        avatar = account.avatar,
+                                    )
+                                )
+                                navController.navigate("home")
+                            } else {
+                                loginFailed.value = true
+                            }
+                        } else {
+                            Toast.makeText(context, "Something went wrong", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
             },
             modifier = Modifier
