@@ -59,6 +59,11 @@ interface ApiService {
     @GET("api/users/")
     suspend fun getUsers(): Response<ApiResponse<List<User>>>
 
+    @GET("api/users/search")
+    suspend fun searchUsers(
+        @Query("query") query: String
+    ): Response<ApiResponse<List<User>>>
+
     // Post
     @GET("api/posts")
     suspend fun getPosts(): Response<ApiResponse<List<Post>>>
@@ -92,6 +97,9 @@ interface ApiService {
 
     @GET("api/posts/creator/{id}")
     suspend fun getPostByCreatorId(@Path("id") id: Long): Response<ApiResponse<List<Post>>>
+
+    @GET("api/posts/search")
+    suspend fun searchPosts(@Query("query") query: String): Response<ApiResponse<List<Post>>>
 
     // Comment
     @POST("api/comments")
