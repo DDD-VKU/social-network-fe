@@ -36,16 +36,14 @@ import vku.ddd.social_network_fe.ui.layouts.Navigation
 import vku.ddd.social_network_fe.ui.layouts.TopNavigationBar
 
 @Composable
-fun SearchScreen(navController: NavHostController) {
+fun SearchScreen(globalNavController: NavHostController) {
     val searchNavController = rememberNavController()
     val searchString = remember { mutableStateOf("") }
-    var currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-    Scaffold (
-        modifier = Modifier
-            .fillMaxSize()
-        ,
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
         topBar = {
-            Column { // Bọc cả TopAppBar và TopNavigationBar vào Column
+            Column {
                 TopAppBar(
                     backgroundColor = Color.White,
                     elevation = 4.dp,
@@ -58,9 +56,7 @@ fun SearchScreen(navController: NavHostController) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
-                            onClick = {
-                                navController.popBackStack()
-                            }
+                            onClick = { globalNavController.popBackStack() }
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.ArrowBackIosNew,
@@ -72,37 +68,40 @@ fun SearchScreen(navController: NavHostController) {
                             value = searchString.value,
                             onValueChange = {
                                 searchString.value = it
+                                searchNavController.navigate("post-search/${searchString.value}") {
+                                    launchSingleTop = true
+                                }
                             },
                             placeholder = { Text("Search...") },
                             modifier = Modifier.weight(1f)
                         )
                     }
                 }
-                // Đưa TopNavigationBar ra ngoài TopAppBar
                 TopNavigationBar(
-                    listOf(
-                        TopNavItem(
-                            name = "Post",
-                            route = "post-search",
-                            icon = Icons.Default.Article
-                        ),
-                        TopNavItem(
-                            name = "User",
-                            route = "user-search",
-                            icon = Icons.Default.Person
-                        ),
+                    items = listOf(
+                        TopNavItem("Post", "post-search", Icons.Default.Article),
+                        TopNavItem("User", "user-search", Icons.Default.Person)
                     ),
-                    navController = navController,
-                    onItemClick = {
-                        searchNavController.navigate(it.route)
+                    navController = searchNavController,
+                    onItemClick = { item ->
+                        searchNavController.navigate("${item.route}/${searchString.value}") {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
         },
         contentWindowInsets = WindowInsets(0.dp)
     ) { innerPadding ->
-        Column (Modifier.padding(innerPadding), verticalArrangement = Arrangement.Bottom) {
-            Navigation(globalNavController = navController, searchNavController, false)
+        Column(
+            modifier = Modifier.padding(innerPadding),
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Navigation(
+                globalNavController = globalNavController,
+                searchNavController = searchNavController,
+                mainNavigation = false
+            )
         }
     }
 }

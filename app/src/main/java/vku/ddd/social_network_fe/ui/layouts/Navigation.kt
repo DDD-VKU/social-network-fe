@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
@@ -67,30 +68,35 @@ import vku.ddd.social_network_fe.ui.screens.search.UserSearchScreen
 import java.net.URLDecoder
 
 @Composable
-fun Navigation(globalNavController: NavHostController, searchNavController: NavHostController?, mainNavigation: Boolean) {
+fun Navigation(
+    globalNavController: NavHostController,
+    searchNavController: NavHostController?,
+    mainNavigation: Boolean
+) {
     val context = LocalContext.current
     val items = listOf(
-        TopNavItem(name = "Home", route = "home", icon = Icons.Filled.Home),
-        TopNavItem(name = "Follow", route = "following_suggestion", icon = Icons.Filled.Person),
-        TopNavItem(name = "Message", route = "message", icon = Icons.Filled.MailOutline),
-        TopNavItem(name = "Notification", route = "notification", icon = Icons.Filled.Notifications),
-        TopNavItem(name = "Menu", route = "menu", icon = Icons.Filled.Menu)
+        TopNavItem("Home", "home", Icons.Filled.Home),
+        TopNavItem("Follow", "following_suggestion", Icons.Filled.Person),
+        TopNavItem("Message", "message", Icons.Filled.MailOutline),
+        TopNavItem("Notification", "notification", Icons.Filled.Notifications),
+        TopNavItem("Menu", "menu", Icons.Filled.Menu)
     )
     val toLoginScreen = remember { mutableStateOf(false) }
     val isReady = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        val loginAccount: Account? = AccountDataStore(context).getAccount()
+        val loginAccount: String? = TokenDataStore(context).getToken()
         toLoginScreen.value = loginAccount == null
-        val token : String? = TokenDataStore(context).getToken()
-        if (token != null)
+        TokenDataStore(context).getToken()?.let { token ->
             RetrofitClient.setToken(token)
+        }
         isReady.value = true
     }
 
     Column {
+        // Giữ nguyên giao diện header và bottom tabs khi mainNavigation = true
         if (mainNavigation) {
-            var currentRoute = globalNavController.currentBackStackEntryAsState().value?.destination?.route
+            val currentRoute = globalNavController.currentBackStackEntryAsState().value?.destination?.route
             if (!(currentRoute == "profile" ||
                         (currentRoute?.startsWith("post/") == true) ||
                         currentRoute == "search" ||
@@ -102,22 +108,21 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
                         currentRoute?.startsWith("post-update/") == true ||
                         currentRoute?.startsWith("profile/") == true ||
                         currentRoute?.startsWith("image-detail/") == true)) {
-                Column (
+                Column(
                     modifier = Modifier
                         .shadow(elevation = 5.dp)
                 ) {
                     if (currentRoute == "home") {
-                        Row (
+                        Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .background(Color.White)
                                 .fillMaxWidth()
                                 .windowInsetsPadding(WindowInsets.statusBars)
-                                .windowInsetsPadding(WindowInsets.navigationBars)
                                 .padding(start = 16.dp, end = 16.dp, top = 6.dp)
                         ) {
-                            Text (
+                            Text(
                                 text = "Footnote",
                                 color = Color.Blue,
                                 fontSize = 32.sp,
@@ -127,121 +132,126 @@ fun Navigation(globalNavController: NavHostController, searchNavController: NavH
                             Row {
                                 Button(
                                     modifier = Modifier.size(44.dp),
-                                    onClick = {
-                                        globalNavController.navigate("post-create")
-                                    },
+                                    onClick = { globalNavController.navigate("post-create") },
                                     colors = ButtonDefaults.buttonColors(
                                         contentColor = Color.Black,
                                         containerColor = Color.Transparent
                                     ),
-                                    contentPadding = PaddingValues(0.dp)
+                                    contentPadding = PaddingValues(0.dp),
+                                    shape = CircleShape
                                 ) {
-                                    Icon (
-                                        imageVector = Icons.Filled.AddCircle,
-                                        contentDescription = "Create post",
-                                        Modifier.size(24.dp)
-                                    )
+                                    Icon(Icons.Filled.AddCircle, contentDescription = "Create post")
                                 }
                                 Button(
                                     modifier = Modifier.size(44.dp),
-                                    onClick = {
-                                        globalNavController.navigate("search")
-                                    },
+                                    onClick = { globalNavController.navigate("search") },
                                     colors = ButtonDefaults.buttonColors(
                                         contentColor = Color.Black,
                                         containerColor = Color.Transparent
                                     ),
-                                    contentPadding = PaddingValues(0.dp)
+                                    contentPadding = PaddingValues(0.dp),
+                                    shape = CircleShape
                                 ) {
-                                    Icon (
-                                        imageVector = Icons.Outlined.Search,
-                                        contentDescription = "Search",
-                                        Modifier.size(28.dp)
-                                    )
+                                    Icon(Icons.Outlined.Search, contentDescription = "Search")
                                 }
                             }
                         }
                     }
-                    TopNavigationBar(items, globalNavController, onItemClick = { item ->
-                        globalNavController.navigate(item.route)
-                    })
+                    TopNavigationBar(
+                        items = items,
+                        navController = globalNavController,
+                        onItemClick = { item ->
+                            globalNavController.navigate(item.route)
+                        }
+                    )
                 }
-
             }
         }
-        if (isReady.value)
-        NavHost(
-            navController = if (mainNavigation) globalNavController else searchNavController!!,
-            startDestination = if (mainNavigation)
-                if (toLoginScreen.value)
-                    "login"
-                else
-                    "home"
-            else "post-search",
-            modifier = Modifier
-                .windowInsetsPadding(WindowInsets.navigationBars)
-        ) {
-            val gson = Gson()
-            if (mainNavigation) {
-                composable("home") { HomeScreen(globalNavController) }
-                composable("following_suggestion") { FollowingSuggestionScreen(globalNavController) }
-                composable("message") { MessageScreen() }
-                composable("notification") { NotificationScreen(globalNavController) }
-                composable("menu") { MenuScreen(globalNavController) }
-                composable(
-                    "profile/{id}",
-                    arguments = listOf(navArgument("id") {type = NavType.LongType})
-                ) { backStackEntry ->
-                    val accountId = backStackEntry.arguments?.getLong("id")
-                    if (accountId != null) {
-                        ProfileScreen(globalNavController, accountId)
+
+        // Đợi dữ liệu sẵn sàng rồi mới render NavHost
+        if (isReady.value) {
+            NavHost(
+                navController = if (mainNavigation) globalNavController else searchNavController!!,
+                startDestination = if (mainNavigation) {
+                    if (toLoginScreen.value) "login" else "home"
+                } else {
+                    "post-search/{query}"
+                },
+                modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars)
+            ) {
+                val gson = Gson()
+
+                if (mainNavigation) {
+                    // Main app navigation
+                    composable("home") { HomeScreen(globalNavController) }
+                    composable("following_suggestion") { FollowingSuggestionScreen(globalNavController) }
+                    composable("message") { MessageScreen() }
+                    composable("notification") { NotificationScreen(globalNavController) }
+                    composable("menu") { MenuScreen(globalNavController) }
+
+                    composable(
+                        "profile/{id}",
+                        arguments = listOf(navArgument("id") { type = NavType.LongType })
+                    ) { entry ->
+                        entry.arguments?.getLong("id")?.let { ProfileScreen(globalNavController, it) }
+                    }
+
+                    composable(
+                        "post/{postJson}",
+                        arguments = listOf(navArgument("postJson") { type = NavType.StringType })
+                    ) { entry ->
+                        val decoded = URLDecoder.decode(entry.arguments?.getString("postJson") ?: "", "UTF-8")
+                        gson.fromJson(decoded, Post::class.java).let { PostScreen(globalNavController, it) }
+                    }
+
+                    composable("search") { SearchScreen(globalNavController) }
+                    composable("post-create") { CreatePostScreen(globalNavController) }
+
+                    composable(
+                        "post-update/{postJson}",
+                        arguments = listOf(navArgument("postJson") { type = NavType.StringType })
+                    ) { entry ->
+                        val decoded = URLDecoder.decode(entry.arguments?.getString("postJson") ?: "", "UTF-8")
+                        gson.fromJson(decoded, Post::class.java).let { UpdatePostScreen(globalNavController, it) }
+                    }
+
+                    composable(
+                        "image-detail/{postJson}",
+                        arguments = listOf(navArgument("postJson") { type = NavType.StringType })
+                    ) { entry ->
+                        val decoded = URLDecoder.decode(entry.arguments?.getString("postJson") ?: "", "UTF-8")
+                        gson.fromJson(decoded, Post::class.java).let { Common.ImageDetail(globalNavController, it) }
+                    }
+
+                    composable("setting") { SettingScreen(globalNavController) }
+                    composable(
+                        "list-image/{postJson}",
+                        arguments = listOf(navArgument("postJson") { type = NavType.StringType })
+                    ) { entry ->
+                        val decoded = URLDecoder.decode(entry.arguments?.getString("postJson") ?: "", "UTF-8")
+                        gson.fromJson(decoded, Post::class.java).let { ListImageScreen(globalNavController, it) }
+                    }
+
+                    composable("login") { LoginScreen(globalNavController) }
+                    composable("register") { RegisterScreen(globalNavController) }
+                } else {
+                    // Search-specific navigation
+                    composable(
+                        "post-search/{query}",
+                        arguments = listOf(navArgument("query") { type = NavType.StringType; defaultValue = "" })
+                    ) { entry ->
+                        val query = entry.arguments?.getString("query") ?: ""
+                        PostSearchScreen(globalNavController, query)
+                    }
+
+                    composable(
+                        "user-search/{query}",
+                        arguments = listOf(navArgument("query") { type = NavType.StringType; defaultValue = "" })
+                    ) { entry ->
+                        val query = entry.arguments?.getString("query") ?: ""
+                        UserSearchScreen(globalNavController, query)
                     }
                 }
-                composable(
-                    "post/{postJson}",
-                    arguments = listOf(navArgument("postJson") { type = NavType.StringType })
-                ) { backStackEntry ->
-                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
-                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
-                    PostScreen(globalNavController, post)
-                }
-                composable("search") { SearchScreen(globalNavController) }
-                composable("post-create") { CreatePostScreen(globalNavController) }
-                composable(
-                    "post-update/{postJson}",
-                    arguments = listOf(navArgument("postJson") { type = NavType.StringType })
-                ) { backStackEntry ->
-                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
-                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
-                    UpdatePostScreen(globalNavController, post)
-                }
-                composable(
-                    "image-detail/{postJson}",
-                    arguments = listOf(navArgument("postJson") {type = NavType.StringType})
-                ) { backStackEntry ->
-                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
-                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
-                    Common.ImageDetail(globalNavController, post)
-                }
-                composable(
-                    "setting",
-                ) {
-                    SettingScreen(globalNavController)
-                }
-                composable(
-                    "list-image/{postJson}",
-                    arguments = listOf(navArgument("postJson") {type = NavType.StringType})
-                ) {
-                        backStackEntry ->
-                    val postJson = backStackEntry.arguments?.getString("postJson") ?: ""
-                    val post = gson.fromJson(URLDecoder.decode(postJson), Post::class.java)
-                    ListImageScreen(globalNavController, post)
-                }
-                composable("login"){ LoginScreen(globalNavController) }
-                composable("register"){ RegisterScreen(globalNavController) }
-            } else {
-                composable("post-search") { PostSearchScreen(globalNavController) }
-                composable("user-search") { UserSearchScreen(globalNavController) }
             }
         }
     }

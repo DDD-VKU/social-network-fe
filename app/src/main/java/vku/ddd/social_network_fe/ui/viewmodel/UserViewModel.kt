@@ -11,4 +11,8 @@ class UserViewModel: ViewModel() {
         users.clear()
         users.addAll(data)
     }
+
+    fun removeUsers() {
+        users.clear()
+    }
 }
