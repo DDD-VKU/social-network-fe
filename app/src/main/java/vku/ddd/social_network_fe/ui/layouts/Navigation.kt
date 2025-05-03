@@ -1,6 +1,5 @@
 package vku.ddd.social_network_fe.ui.layouts
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,9 +46,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.google.gson.Gson
 import vku.ddd.social_network_fe.data.api.RetrofitClient
-import vku.ddd.social_network_fe.data.datastore.AccountDataStore
 import vku.ddd.social_network_fe.data.datastore.TokenDataStore
-import vku.ddd.social_network_fe.data.model.Account
 import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.components.Common
 import vku.ddd.social_network_fe.ui.components.TopNavItem
@@ -61,6 +58,7 @@ import vku.ddd.social_network_fe.ui.screens.menu.SettingScreen
 import vku.ddd.social_network_fe.ui.screens.notification.NotificationScreen
 import vku.ddd.social_network_fe.ui.screens.post.ListImageScreen
 import vku.ddd.social_network_fe.ui.screens.post.PostScreen
+import vku.ddd.social_network_fe.ui.screens.profile.EditProfileScreen
 import vku.ddd.social_network_fe.ui.screens.profile.ProfileScreen
 import vku.ddd.social_network_fe.ui.screens.search.PostSearchScreen
 import vku.ddd.social_network_fe.ui.screens.search.SearchScreen
@@ -105,6 +103,7 @@ fun Navigation(
                         currentRoute == "register" ||
                         currentRoute == "setting" ||
                         currentRoute == "list-image" ||
+                        currentRoute == "edit_profile" ||
                         currentRoute?.startsWith("post-update/") == true ||
                         currentRoute?.startsWith("profile/") == true ||
                         currentRoute?.startsWith("image-detail/") == true)) {
@@ -188,6 +187,7 @@ fun Navigation(
                     composable("message") { MessageScreen() }
                     composable("notification") { NotificationScreen(globalNavController) }
                     composable("menu") { MenuScreen(globalNavController) }
+                    composable("edit_profile") { EditProfileScreen(globalNavController) }
 
                     composable(
                         "profile/{id}",
