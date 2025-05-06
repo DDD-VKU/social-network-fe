@@ -43,83 +43,51 @@ fun NotificationScreen(navController: NavHostController) {
     val context = LocalContext.current
     val accountDataStore = remember { AccountDataStore(context) }
 
-//  Tải dữ liệu khi màn hình được hiển thị
-    LaunchedEffect(Unit) {
-        try {
-            Log.e("LOG: ", "NOTIFICATION LOADING....")
-            accountDataStore.getAccount()?.let { account ->
-                val fetchNotifications = getNotificationsById(account.id) ?: emptyList()
-                notificationViewModel.loadData(fetchNotifications)
-
-                // Kết nối STOMP WebSocket
-                val stompManager = StompManager(RetrofitClient.stompHttpClient)
-                stompManager.connect("10.0.2.2", 8080, "/social-network/ws")
-
-                // Đăng ký nhận thông báo cá nhân tại /user/notification
-                stompManager.subscribe("/user/notification") { message ->
-                    try {
-                        Log.d("STOMP", "Message received: $message")
-                        val json = JSONObject(message)
-
-                        val newNotification = Notification(
-                            id = json.optLong("id", 0),
-                            title = json.optString("title", ""),
-                            body = json.optString("body", ""),
-                            type = try {
-                                NotificationType.valueOf(json.optString("type", NotificationType.LIKE_POST.name))
-                            } catch (e: IllegalArgumentException) {
-                                NotificationType.LIKE_POST // Nếu không hợp lệ, trả về giá trị mặc định
-                            },
-                            hrefId = json.optLong("href_id", 0),
-                            createdAt = try {
-                                LocalDateTime.parse(json.optString("createdAt", ""), DateTimeFormatter.ISO_DATE_TIME)
-                            } catch (e: Exception) {
-                                LocalDateTime.now() // Nếu không thể parse, trả về thời gian hiện tại
-                            }
-                        )
-
-                        // Cập nhật UI với thông báo mới
-                        notificationViewModel.add(newNotification)
-
-                    } catch (e: Exception) {
-                        Log.e("STOMP", "Lỗi xử lý message: ${e.message}")
-                    }
-                }
-
+    LaunchedEffect(key1 = true) {
+        val account = accountDataStore.getAccount()
+        if (account != null) {
+            // Gọi API lấy danh sách thông báo
+            val fetchedNotifications = getNotificationsById(account.id)
+            if (fetchedNotifications != null) {
+                notificationViewModel.loadData(fetchedNotifications)
+            } else {
+                Log.w("NotificationScreen", "Không thể tải danh sách thông báo.")
             }
-        } catch (e: Exception) {
-            Log.e("Notification Screen", "Error loading notifications", e)
+
+            // Kết nối STOMP để nhận thông báo realtime
+//            notificationViewModel.connectStomp(account.id)
+        } else {
+            Log.w("NotificationScreen", "Không tìm thấy tài khoản.")
         }
     }
 
+
     LazyColumn (
         modifier = Modifier.fillMaxSize()
-
     ) {
-        items (notificationViewModel.notifications.size) { i ->
-            Column {
-                Row (
+        items (notificationViewModel.notifications.size) { i ->Column {
+            Row (
+                modifier = Modifier
+                    .background(Color(0xFFE7F8FF))
+                    .padding(top = 10.dp, bottom = 3.dp)
+                    .wrapContentHeight()
+                    .background(Color(0xFFE7F8FF))
+                    .fillParentMaxWidth()
+                    .padding(horizontal = 8.dp)
+            ) {
+                Box (
                     modifier = Modifier
-                        .background(Color(0xFFE7F8FF))
-                        .padding(top = 10.dp, bottom = 3.dp)
-                        .wrapContentHeight()
-                        .background(Color(0xFFE7F8FF))
-                        .fillParentMaxWidth()
-                        .padding(horizontal = 8.dp)
-                ) {
-                    Box (
-                        modifier = Modifier
-                            .border(width = 1.dp, color = Color.Black, shape = CircleShape)
-                            .size(40.dp)
-                    ) {  }
-                    Spacer(Modifier.width(10.dp))
-                    Column {
-                        Text(text = notificationViewModel.notifications[i].title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text(text = notificationViewModel.notifications[i].createdAt.toString())
-                    }
+                        .border(width = 1.dp, color = Color.Black, shape = CircleShape)
+                        .size(40.dp)
+                ) {  }
+                Spacer(Modifier.width(10.dp))
+                Column {
+                    Text(text = notificationViewModel.notifications[i].title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    Text(text = notificationViewModel.notifications[i].createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 }
-                Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
             }
+            Divider(color = Color(0xFFE0E0E0), thickness = 1.dp)
+        }
         }
     }
 }
@@ -128,10 +96,12 @@ suspend fun getNotificationsById(id: Long): List<Notification>? {
     return try {
         val response = RetrofitClient.instance.getAllNotificationsById(id)
         if (response.isSuccessful) {
+            Log.e("abc def", "API: ${response.body()?.message}")
+            Log.e("abc def", "API: ${response.body()?.data}")
             response.body()?.data
         } else {
-            Log.e("abc def", "API error: ${response.code()}")
-            null
+            Log.e("abc def", "API error: ${response.body()?.code}")
+            emptyList()
         }
     }catch (e: Exception) {
         Log.e("abc def", "Exception: ${e.message}")
