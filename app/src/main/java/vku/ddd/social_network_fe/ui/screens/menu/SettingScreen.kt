@@ -28,18 +28,31 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
+import vku.ddd.social_network_fe.data.datastore.AccountDataStore
+import vku.ddd.social_network_fe.data.model.Account
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingScreen(navHostController: NavHostController) {
+    val context = LocalContext.current
+    val accountDataStore = remember { AccountDataStore(context) }
+    val account = remember { mutableStateOf<Account?>(null) }
+    LaunchedEffect(Unit) {
+        account.value = accountDataStore.getAccount()
+    }
 
     Scaffold(
         topBar = {
@@ -89,10 +102,10 @@ fun SettingScreen(navHostController: NavHostController) {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Column {
-                            SettingItem("Thông tin cá nhân", Icons.Default.Person)
-                            SettingItem("Đặt lại mật khẩu", Icons.Default.Security)
-                            SettingItem("Tùy chọn", Icons.Default.Settings)
-                            SettingItem("Nâng cao", Icons.Default.Verified)
+                            SettingItem("Thông tin cá nhân", Icons.Default.Person, navHostController, "profile/${account.value?.id}")
+                            SettingItem("Đặt lại mật khẩu", Icons.Default.Security, navHostController, "reset-password")
+                            SettingItem("Tùy chọn", Icons.Default.Settings, navHostController, "settings")
+                            SettingItem("Nâng cao", Icons.Default.Verified, navHostController, "")
                         }
                     }
                 }
@@ -102,12 +115,13 @@ fun SettingScreen(navHostController: NavHostController) {
 }
 
 @Composable
-fun SettingItem(text: String, icon: ImageVector) {
+fun SettingItem(text: String, icon: ImageVector, navigation: NavHostController, destination: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { /* TODO: Handle click */ }
-            .padding(16.dp),
+            .padding(16.dp)
+            .clickable { navigation.navigate(destination) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, contentDescription = text, modifier = Modifier.size(24.dp))

@@ -24,6 +24,7 @@ import vku.ddd.social_network_be.dto.request.PostShareRequest
 import vku.ddd.social_network_be.dto.request.ReactToPostRequest
 import vku.ddd.social_network_fe.data.model.Account
 import vku.ddd.social_network_fe.data.model.Comment
+import vku.ddd.social_network_fe.data.model.Notification
 import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.data.model.User
 import vku.ddd.social_network_fe.data.model.response.ApiResponse
@@ -113,6 +114,10 @@ interface ApiService {
 
     @GET("api/comments/post/{postId}")
     suspend fun getCommentsByPostId(@Path("postId") postId: Long): Response<ApiResponse<List<Comment>>>
+
+    // Notification
+    @GET("api/notification/{id}")
+    suspend fun getAllNotificationsById(@Path("id") id: Long): Response<ApiResponse<List<Notification>>>
 
     // Authenticate
     @POST("api/auth/authenticate")
