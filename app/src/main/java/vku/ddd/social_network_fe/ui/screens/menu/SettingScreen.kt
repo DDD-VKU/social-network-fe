@@ -89,7 +89,21 @@ fun SettingScreen(navHostController: NavHostController) {
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Column {
-                            SettingItem("Thông tin cá nhân", Icons.Default.Person)
+                            // Thông tin cá nhân
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        navHostController.navigate("edit_profile")
+                                    }
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val text = "Thông tin cá nhân"
+                                Icon(Icons.Default.Person, contentDescription = text, modifier = Modifier.size(24.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(text, fontSize = 16.sp)
+                            }
                             SettingItem("Đặt lại mật khẩu", Icons.Default.Security)
                             SettingItem("Tùy chọn", Icons.Default.Settings)
                             SettingItem("Nâng cao", Icons.Default.Verified)
@@ -102,11 +116,13 @@ fun SettingScreen(navHostController: NavHostController) {
 }
 
 @Composable
-fun SettingItem(text: String, icon: ImageVector) {
+fun SettingItem(text: String, icon: ImageVector, modifier: Modifier = Modifier) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* TODO: Handle click */ }
+            .clickable {
+                // Handle click event
+            }
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
