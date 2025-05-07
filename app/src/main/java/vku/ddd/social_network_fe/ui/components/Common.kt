@@ -112,6 +112,7 @@ import vku.ddd.social_network_be.dto.request.ReactToPostRequest
 // Application specific
 import vku.ddd.social_network_fe.R
 import vku.ddd.social_network_fe.data.api.RetrofitClient
+import vku.ddd.social_network_fe.data.datastore.AccountDataStore
 import vku.ddd.social_network_fe.data.model.Comment
 import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.viewmodel.PostViewModel
@@ -124,6 +125,7 @@ import java.time.format.DateTimeFormatter
 
 object Common {
     val gson = Gson()
+
     @Composable
     fun LikeCommentShareButtons(
         color : Color = Color.White,
@@ -135,6 +137,9 @@ object Common {
         val postJson = gson.toJson(post)
         val encodedPost = URLEncoder.encode(postJson, StandardCharsets.UTF_8.toString())
         val coroutineScope = rememberCoroutineScope()
+        val context = LocalContext.current
+        val accountDataStore = remember { AccountDataStore(context) }
+
         Row (
             modifier = Modifier
         ) {
@@ -142,12 +147,15 @@ object Common {
             Button(
                 onClick = {
                     isLiked.value = !isLiked.value
-                    val request = ReactToPostRequest(
-                        postId = post.id,
-                        userId = 1,
-                        reaction = "LIKE"
-                    )
                     coroutineScope.launch {
+                        val account = accountDataStore.getAccount()
+                        val userId = account?.id ?: return@launch
+
+                        val request = ReactToPostRequest(
+                            postId = post.id,
+                            userId = userId,
+                            reaction = "LIKE"
+                        )
                         val response = reactToPost(post, request)
                         response?.let {
                             Log.d("abc def", "Post reacted successfully: ${it.id}")
@@ -236,10 +244,10 @@ object Common {
                 Icon(Icons.Filled.ThumbUp, "Like", tint = Color.Blue)
                 Spacer(Modifier.width(2.dp))
                 Text(post?.likesCount?.toString() ?: "0", color = textColor)
-                Spacer(Modifier.width(10.dp))
-                Icon(Icons.Filled.ThumbDown, "Dislike", tint = Color.Red)
-                Spacer(Modifier.width(2.dp))
-                Text(post?.dislikeCount?.toString() ?: "0", color = textColor)
+//                Spacer(Modifier.width(10.dp))
+//                Icon(Icons.Filled.ThumbDown, "Dislike", tint = Color.Red)
+//                Spacer(Modifier.width(2.dp))
+//                Text(post?.dislikeCount?.toString() ?: "0", color = textColor)
             }
 
             // Comments & Shares (horizontal)
