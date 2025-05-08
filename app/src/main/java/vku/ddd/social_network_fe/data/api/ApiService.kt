@@ -24,6 +24,7 @@ import vku.ddd.social_network_be.dto.request.PostShareRequest
 import vku.ddd.social_network_be.dto.request.ReactToPostRequest
 import vku.ddd.social_network_fe.data.model.Account
 import vku.ddd.social_network_fe.data.model.Comment
+import vku.ddd.social_network_fe.data.model.Notification
 import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.data.model.User
 import vku.ddd.social_network_fe.data.model.response.ApiResponse
@@ -126,4 +127,7 @@ interface ApiService {
 
     @GET("api/uploads/image/{id}")
     suspend fun getImage(@Path("id") id: Long): Response<ResponseBody>
+
+    //Notification
+    suspend fun getAllNotifications() : Response<ApiResponse<List<Notification>>>
 }

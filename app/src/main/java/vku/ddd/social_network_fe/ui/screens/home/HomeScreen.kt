@@ -65,8 +65,10 @@ fun HomeScreen(navController: NavHostController) {
         post.value =
             fetchPost(118)
         while (posts.size < 10 && post.value != null) {
-            posts.add(fetchPost(187)!!)
-            posts.add(fetchPost(190)!!)
+            if (fetchPost(187) != null)
+                posts.add(fetchPost(187)!!)
+            if (fetchPost(190) != null)
+                posts.add(fetchPost(190)!!)
         }
         postsViewModel.loadData(posts)
     }
