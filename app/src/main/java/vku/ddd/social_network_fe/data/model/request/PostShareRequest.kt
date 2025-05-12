@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 
 data class PostShareRequest(
     @field:NotNull
-    var refPostId: Int,
+    var refPostId: Long,
 
     @field:NotBlank
     var caption: String = "",
@@ -17,5 +17,5 @@ data class PostShareRequest(
     @field:NotBlank
     var privacy: String = "",
 
-    var createdAt: LocalDateTime? = LocalDateTime.now()
+    var createdAt: String = LocalDateTime.now().toString()
 )

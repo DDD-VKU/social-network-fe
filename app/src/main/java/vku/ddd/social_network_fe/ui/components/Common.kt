@@ -71,12 +71,14 @@ import androidx.compose.material3.MaterialTheme
 
 // Compose UI
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -113,6 +115,7 @@ import vku.ddd.social_network_be.dto.request.ReactToPostRequest
 import vku.ddd.social_network_fe.R
 import vku.ddd.social_network_fe.data.api.RetrofitClient
 import vku.ddd.social_network_fe.data.datastore.AccountDataStore
+import vku.ddd.social_network_fe.data.model.Account
 import vku.ddd.social_network_fe.data.model.Comment
 import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.viewmodel.PostViewModel
@@ -203,7 +206,9 @@ object Common {
                 Text(text = "Comment", color = textColor, fontSize = 14.sp)
             }
             Button(
-                onClick = {},
+                onClick = {
+                    navController.navigate("post-share/$encodedPost")
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = color,
                     contentColor = color
@@ -274,7 +279,7 @@ object Common {
     }
 
     @Composable
-    fun PostMetaData(navController: NavHostController, post: Post? = null) {
+    fun PostMetaData(navController: NavHostController, post: Post, share: Boolean) {
         val postJson = gson.toJson(post)
         val encodedPost = URLEncoder.encode(postJson, StandardCharsets.UTF_8.toString())
         val defaultDateTime = "2020-04-04T19:00:00" // Điều chỉnh lại default thành dạng ISO
@@ -282,7 +287,12 @@ object Common {
         val expanded = remember { mutableStateOf(false) }
         val coroutineScope = rememberCoroutineScope()
         val context = LocalContext.current
+        var account by remember { mutableStateOf<Account?>(null) }
         val viewModel: PostViewModel = viewModel()
+
+        LaunchedEffect(Unit) {
+            account = AccountDataStore(context).getAccount()
+        }
 
         val parsedDateTime = remember(dateTimeString) {
             runCatching {
@@ -329,6 +339,7 @@ object Common {
                     }
                 }
             }
+            if (share == false && (account?.username == post.username))
             Box {
                 IconButton(
                     onClick = { expanded.value = true }
@@ -376,7 +387,8 @@ object Common {
     @Composable
     fun MergedPostContent(
         navController: NavHostController,
-        post: Post? = null
+        post: Post,
+        share: Boolean = false
     ) {
         val postState = remember { mutableStateOf(post) }
         val postJson = gson.toJson(postState.value)
@@ -384,7 +396,7 @@ object Common {
         Column {
             Spacer(modifier = Modifier.height(6.dp))
             // Display the post metadata and caption
-            PostMetaData(navController = navController, post = postState.value)
+            PostMetaData(navController = navController, post = postState.value!!, share)
             Text(
                 text = post?.caption ?: "Abc def ghi",
                 modifier = Modifier.padding(start = 5.dp, end = 5.dp, bottom = 5.dp)
@@ -494,11 +506,23 @@ object Common {
                     }
                 }
             }
-            // Render like, comment and share counters and buttons
-            LikeCommentShareCounter(post = postState.value)
-            LikeCommentShareButtons(navController = navController, post = postState.value!!) { updatedPost ->
-                postState.value = updatedPost
+            if (post.refPost != null)
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Color.Transparent)
+                        .clip(RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)) // Bo góc dưới
+                        .padding(8.dp)
+                ) {
+                    Common.MergedPostContent(navController, post.refPost, true)
+                }
+            if (share == false) {
+                LikeCommentShareCounter(post = postState.value)
+                LikeCommentShareButtons(navController = navController, post = postState.value!!) { updatedPost ->
+                    postState.value = updatedPost
+                }
             }
+            // Render like, comment and share counters and buttons
         }
     }
 
@@ -819,7 +843,7 @@ object Common {
                 null
             }
         } catch (e: Exception) {
-            Log.e("abc def", "Exception: ${e.message}")
+            Log.e("abc def 2", "Exception: ${e.message}")
             null
         }
     }
@@ -835,7 +859,7 @@ object Common {
                 null
             }
         } catch (ex: Exception) {
-            Log.e("abc def", "Exception: ${ex.message}")
+            Log.e("abc def 3", "Exception: ${ex.message}")
             null
         }
     }

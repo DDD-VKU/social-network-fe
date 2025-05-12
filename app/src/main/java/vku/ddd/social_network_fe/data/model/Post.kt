@@ -16,5 +16,5 @@ data class Post(
     var shareCount: Long,
     val createdAt: String,
     val childrenPosts: List<Post>,
-    val refPost: Post
+    val refPost: Post?
 )

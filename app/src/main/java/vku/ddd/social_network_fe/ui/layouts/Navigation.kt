@@ -105,6 +105,7 @@ fun Navigation(
                         currentRoute == "list-image" ||
                         currentRoute == "edit_profile" ||
                         currentRoute?.startsWith("post-update/") == true ||
+                        currentRoute?.startsWith("post-share/") == true ||
                         currentRoute?.startsWith("profile/") == true ||
                         currentRoute?.startsWith("image-detail/") == true)) {
                 Column(
@@ -206,7 +207,13 @@ fun Navigation(
 
                     composable("search") { SearchScreen(globalNavController) }
                     composable("post-create") { CreatePostScreen(globalNavController) }
-
+                    composable(
+                        "post-share/{postJson}",
+                        arguments = listOf(navArgument("postJson") { type = NavType.StringType })
+                    ) { entry ->
+                        val decoded = URLDecoder.decode(entry.arguments?.getString("postJson") ?: "", "UTF-8")
+                        gson.fromJson(decoded, Post::class.java).let { SharePostScreen(globalNavController, it) }
+                    }
                     composable(
                         "post-update/{postJson}",
                         arguments = listOf(navArgument("postJson") { type = NavType.StringType })

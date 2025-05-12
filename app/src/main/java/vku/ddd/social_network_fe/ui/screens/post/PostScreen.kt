@@ -274,7 +274,7 @@ fun PostScreen(navController: NavHostController, post: Post?) {
                 .padding(innerPadding)
         ) {
             item {
-                Common.MergedPostContent(navController = navController, post = post)
+                Common.MergedPostContent(navController = navController, post = post!!)
             }
             itemsIndexed(commentViewModel.comments.reversed()) { _, comment ->
                 Common.Comment(
@@ -330,7 +330,7 @@ suspend fun getComments(post: Post): List<Comment>? {
             null
         }
     } catch (e: Exception) {
-        Log.e("abc def", "Exception: ${e.message}")
+        Log.e("abc def 4", "Exception: ${e.message}")
         null
     }
 }

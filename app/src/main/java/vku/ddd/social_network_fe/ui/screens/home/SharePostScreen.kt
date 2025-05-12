@@ -30,6 +30,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -73,12 +74,14 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import vku.ddd.social_network_be.dto.request.PostCreateRequest
+import vku.ddd.social_network_be.dto.request.PostShareRequest
 import vku.ddd.social_network_fe.data.api.RetrofitClient
 import vku.ddd.social_network_fe.data.datastore.AccountDataStore
 import vku.ddd.social_network_fe.data.model.Account
 import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.components.DropdownMenuBox
 import vku.ddd.social_network_fe.data.utils.FileUploadUtils.urisToMultipartParts
+import vku.ddd.social_network_fe.ui.components.Common
 import vku.ddd.social_network_fe.ui.components.Common.gson
 import java.io.File
 import java.io.FileOutputStream
@@ -88,36 +91,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun CreatePostScreen(navController: NavHostController) {
-
-    suspend fun downloadImageAndGetUri(context: Context, imageUrl: String): Uri? {
-        return withContext(Dispatchers.IO) {
-            try {
-                val url = URL(imageUrl)
-                val connection = url.openConnection() as HttpURLConnection
-                connection.doInput = true
-                connection.connect()
-                val inputStream = connection.inputStream
-                val bitmap = BitmapFactory.decodeStream(inputStream)
-
-                // Lưu ảnh tạm thời vào cache và lấy Uri
-                val file = File.createTempFile("temp_image", ".jpg", context.cacheDir)
-                val out = FileOutputStream(file)
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-                out.flush()
-                out.close()
-
-                FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.provider",
-                    file
-                )
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-        }
-    }
+fun SharePostScreen(navController: NavHostController, post: Post) {
 
     var postContent by remember { mutableStateOf("") }
     remember { mutableStateListOf<String>() }
@@ -155,9 +129,10 @@ fun CreatePostScreen(navController: NavHostController) {
     )
 
     // Prepare the create request. (Make sure you clear captions if needed)
-    var createRequest = PostCreateRequest(
+    var createRequest = PostShareRequest(
         userId = account?.id ?: 1,
-        caption = mutableListOf() // assuming caption is a mutable list in your DTO
+        caption = "",
+        refPostId = post.id
     )
 
     Scaffold(
@@ -228,98 +203,60 @@ fun CreatePostScreen(navController: NavHostController) {
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Column {
-                TextField(
-                    value = postContent,
-                    onValueChange = { postContent = it },
-                    placeholder = {
-                        Text(
-                            "What's in your mind?",
-                            modifier = Modifier.offset(y = -4.dp, x = 2.dp)
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.Transparent, shape = RoundedCornerShape(10.dp))
-                        .border(1.dp, Color.Blue, RoundedCornerShape(10.dp)),
-                    maxLines = 12,
-                    minLines = 4,
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
-                    )
-                )
-                if (selectedImages.isNotEmpty()) {
-                    selectedImages.forEachIndexed { index, image ->
-                        Column {
-                            Spacer(modifier = Modifier.height(10.dp))
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(image)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = "Selected image",
-                                contentScale = ContentScale.FillWidth,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(max = 400.dp)
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp)) // Tổng bo góc
+                    .border(1.dp, Color.Blue, RoundedCornerShape(10.dp)) // Border tổng
+            ) {
+                Column {
+                    // TextField KHÔNG tự vẽ border nữa
+                    TextField(
+                        value = postContent,
+                        onValueChange = { postContent = it },
+                        placeholder = {
+                            Text(
+                                "What's in your mind?",
+                                modifier = Modifier.offset(y = -4.dp, x = 2.dp)
                             )
-                            if (selectedImages.size > 1) {
-                                TextField(
-                                    value = childPostContents.toList().getOrNull(index) ?: "",
-                                    onValueChange = { childPostContents[index] = it },
-                                    placeholder = {
-                                        Text("Caption", modifier = Modifier.offset(x = 2.dp))
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(Color.Transparent, shape = RoundedCornerShape(10.dp))
-                                        .border(
-                                            1.dp,
-                                            Color.Blue,
-                                            RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)
-                                        ),
-                                    maxLines = 12,
-                                    minLines = 1,
-                                    colors = TextFieldDefaults.colors(
-                                        focusedIndicatorColor = Color.Transparent,
-                                        unfocusedIndicatorColor = Color.Transparent,
-                                        disabledIndicatorColor = Color.Transparent,
-                                        errorIndicatorColor = Color.Transparent
-                                    )
-                                )
-                            }
-                        }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.Transparent)
+                            .clip(RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp)), // Bo góc trên
+                        maxLines = 12,
+                        minLines = 4,
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                            errorIndicatorColor = Color.Transparent
+                        )
+                    )
+
+                    Divider(
+                        color = Color.Blue,
+                        thickness = 1.dp,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .background(Color.Transparent)
+                            .clip(RoundedCornerShape(bottomStart = 10.dp, bottomEnd = 10.dp)) // Bo góc dưới
+                            .padding(8.dp)
+                    ) {
+                        Common.MergedPostContent(navController, post, true)
                     }
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
-                    imagePicker.launch(
-                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF008000)),
-                shape = RoundedCornerShape(6.dp)
-            ) {
-                Icon(imageVector = Icons.Default.Image, contentDescription = "Add Image")
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Image")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = {
                     // Clear and set captions as needed
-                    createRequest.caption.clear()
-                    createRequest.caption.add(postContent)
-                    createRequest.caption.addAll(childPostContents)
+                    createRequest.caption = postContent
                     createRequest.privacy = selectedPrivacy.uppercase()
-                    Log.d("captions: total images: ", selectedImages.size.toString())
-                    Log.d("captions: ", createRequest.caption.toList().toString())
 
 
                     // Convert createRequest to JSON string
@@ -333,7 +270,7 @@ fun CreatePostScreen(navController: NavHostController) {
                     // Make the API call via Retrofit
                     coroutineScope.launch {
                         try {
-                            val response = RetrofitClient.instance.createPost(request, imageParts)
+                            val response = RetrofitClient.instance.sharePost(createRequest)
                             if (response.isSuccessful) {
                                 if (response.body()?.data != null) {
                                     Toast.makeText(
