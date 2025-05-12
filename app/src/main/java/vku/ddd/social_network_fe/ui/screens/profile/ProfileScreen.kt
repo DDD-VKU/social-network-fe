@@ -90,6 +90,14 @@ fun ProfileScreen(navController: NavHostController, accountId: Long) {
         }
     }
 
+    LaunchedEffect(accountId) {
+        try {
+            account = getAccountInfo(accountId)
+        } catch (e: Exception) {
+            Log.e("ProfileScreen", "Error reloading account", e)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

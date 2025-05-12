@@ -29,6 +29,7 @@ import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.data.model.User
 import vku.ddd.social_network_fe.data.model.response.ApiResponse
 import vku.ddd.social_network_fe.data.model.response.AuthenticateResponse
+import vku.ddd.social_network_fe.data.model.response.AccountResponse
 
 interface ApiService {
     // User
@@ -42,12 +43,12 @@ interface ApiService {
     suspend fun createAccount(@Body request: AccountCreateRequest): Response<ApiResponse<Account>>
 
     @Multipart
-    @PUT("api/users/me")
+    @POST("api/users/me")
     suspend fun updateAccount(
         @Header("Authorization") token: String,
         @Part("request") request: RequestBody,
         @Part avatar: MultipartBody.Part?
-    ): Response<ApiResponse<Account>>
+    ): Response<ApiResponse<AccountResponse>>
 
     @DELETE("api/users/search")
     suspend fun findUsersByName(@Query("name") name: String): Response<ApiResponse<List<User>>>

@@ -3,6 +3,7 @@ package vku.ddd.social_network_fe.ui.screens.profile
 import android.app.DatePickerDialog
 import android.util.Log
 import android.widget.DatePicker
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -29,11 +30,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import com.google.gson.Gson
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import vku.ddd.social_network_be.dto.request.AccountUpdateRequest
+import vku.ddd.social_network_fe.data.api.RetrofitClient
 import vku.ddd.social_network_fe.data.datastore.AccountDataStore
+import vku.ddd.social_network_fe.data.datastore.TokenDataStore
 import vku.ddd.social_network_fe.data.model.Account
+import vku.ddd.social_network_fe.data.model.User
+import vku.ddd.social_network_fe.data.model.response.AccountResponse
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -45,6 +55,7 @@ fun EditProfileScreen(navHostController: NavHostController) {
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     var isHaveAvatar by remember { mutableStateOf(false) }
     val defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+    var isLoading by remember { mutableStateOf(false) }
 
     // State for editable fields
     var fname by remember { mutableStateOf("") }
@@ -100,8 +111,89 @@ fun EditProfileScreen(navHostController: NavHostController) {
     // Save account data
     LaunchedEffect(shouldSave) {
         shouldSave?.let { updatedAccount ->
-            AccountDataStore(context).saveAccount(updatedAccount)
-            account = updatedAccount
+            isLoading = true
+            try {
+                val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val outputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val date = inputFormat.parse(dob)
+                val formattedDate = outputFormat.format(date)
+
+                val request = AccountUpdateRequest(
+                    username = updatedAccount.username,
+                    fname = updatedAccount.fname,
+                    lname = updatedAccount.lname,
+                    email = updatedAccount.email,
+                    dob = formattedDate
+                )
+
+                val gson = Gson()
+                val requestJson = gson.toJson(request)
+                Log.d("EditProfileScreen", "Request JSON: $requestJson")
+                val requestBody = requestJson.toRequestBody("application/json".toMediaTypeOrNull())
+
+                val token = TokenDataStore(context).getToken()
+                Log.d("EditProfileScreen", "Token: $token")
+
+                val response = RetrofitClient.instance.updateAccount(
+                    token = "Bearer $token",
+                    request = requestBody,
+                    avatar = null
+                )
+
+                if (response.isSuccessful) {
+                    val accountResponse = response.body()?.data
+                    if (accountResponse != null) {
+                        try {
+                            // Lấy danh sách followers và following từ API
+                            val followersResponse = RetrofitClient.instance.getFollowers(accountResponse.id)
+                            val followingResponse = RetrofitClient.instance.getFollowing(accountResponse.id)
+
+                            val followers = if (followersResponse.isSuccessful) {
+                                followersResponse.body()?.data ?: emptyList()
+                            } else {
+                                emptyList()
+                            }
+
+                            val following = if (followingResponse.isSuccessful) {
+                                followingResponse.body()?.data ?: emptyList()
+                            } else {
+                                emptyList()
+                            }
+
+                            // Chuyển đổi AccountResponse thành Account
+                            val updatedAccount = Account(
+                                id = accountResponse.id,
+                                username = accountResponse.username ?: "",
+                                fname = accountResponse.fname ?: "",
+                                lname = accountResponse.lname ?: "",
+                                email = accountResponse.email ?: "",
+                                bio = accountResponse.bio ?: "",
+                                avatar = accountResponse.avatar,
+                                dob = accountResponse.dob ?: Date(),
+                                followers = followers,
+                                following = following
+                            )
+                            AccountDataStore(context).saveAccount(updatedAccount)
+                            account = updatedAccount
+                            Toast.makeText(context, "Cập nhật thông tin thành công!", Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            Log.e("EditProfileScreen", "Error getting followers/following", e)
+                            Toast.makeText(context, "Lỗi khi lấy danh sách followers/following", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "Cập nhật thông tin thất bại!", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e("EditProfileScreen", "Error response: $errorBody")
+                    Log.e("EditProfileScreen", "Error code: ${response.code()}")
+                    Toast.makeText(context, "Cập nhật thông tin thất bại: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Log.e("EditProfileScreen", "Error updating account", e)
+                Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+            isLoading = false
             shouldSave = null // Reset to prevent re-saving
         }
     }
@@ -223,6 +315,19 @@ fun EditProfileScreen(navHostController: NavHostController) {
             )
 
             Divider()
+        }
+        // Loading Dialog
+        if (isLoading) {
+            Dialog(onDismissRequest = {}) {
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ){
+                    CircularProgressIndicator()
+                }
+            }
         }
 
         // Edit Dialog
