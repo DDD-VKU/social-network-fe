@@ -41,11 +41,12 @@ interface ApiService {
     @POST("api/users")
     suspend fun createAccount(@Body request: AccountCreateRequest): Response<ApiResponse<Account>>
 
+    @Multipart
     @PUT("api/users/me")
     suspend fun updateAccount(
         @Header("Authorization") token: String,
         @Part("request") request: RequestBody,
-        @Part("avatar") avatar: MultipartBody.Part?
+        @Part avatar: MultipartBody.Part?
     ): Response<ApiResponse<Account>>
 
     @DELETE("api/users/search")

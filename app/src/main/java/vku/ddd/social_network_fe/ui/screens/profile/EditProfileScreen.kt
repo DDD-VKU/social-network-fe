@@ -43,6 +43,8 @@ fun EditProfileScreen(navHostController: NavHostController) {
     var account by remember { mutableStateOf<Account?>(null) }
     val context = LocalContext.current
     val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    var isHaveAvatar by remember { mutableStateOf(false) }
+    val defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png"
 
     // State for editable fields
     var fname by remember { mutableStateOf("") }
@@ -91,6 +93,7 @@ fun EditProfileScreen(navHostController: NavHostController) {
             //gender = it.gender
             dob = it.dob?.let { dateFormat.format(it) } ?: ""
             selectedDate = it.dob
+            isHaveAvatar = it.avatar != 0L
         }
     }
 
@@ -136,7 +139,11 @@ fun EditProfileScreen(navHostController: NavHostController) {
                 },
                 leadingContent = {
                     AsyncImage(
-                        model = "http://10.0.2.2:8080/social-network/api/uploads/images/${account!!.avatar}",
+                        model = if (isHaveAvatar) {
+                            "http://10.0.2.2:8080/social-network/api/uploads/images/${account!!.avatar}"
+                        } else {
+                            defaultAvatar
+                        },
                         contentDescription = null,
                         modifier = Modifier
                             .size(48.dp)
