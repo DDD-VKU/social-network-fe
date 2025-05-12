@@ -74,14 +74,14 @@ fun ProfileScreen(navController: NavHostController, accountId: Long) {
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-
         isLoading = true
         errorMessage = null
 
         try {
             account = getAccountInfo(accountId)
             loginAccount = AccountDataStore(context).getAccount()!!
-            postViewModel.loadData(account!!.posts)
+            val posts = getPosts(accountId)
+            postViewModel.loadData(posts)
         } catch (e: Exception) {
             errorMessage = "Failed to load account: ${e.localizedMessage}"
             Log.e("ProfileScreen", "Error loading account", e)
