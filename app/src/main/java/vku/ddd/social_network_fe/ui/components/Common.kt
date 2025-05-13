@@ -175,7 +175,7 @@ object Common {
                     imageVector = Icons.Outlined.ThumbUp, // Biểu tượng Like
                     contentDescription = "Like",
                     tint = if (isLiked.value) Color.Blue else textColor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = "Like", color = if (isLiked.value) Color.Blue else textColor, fontSize = 14.sp)
@@ -197,7 +197,7 @@ object Common {
                     imageVector = Icons.Outlined.ChatBubbleOutline,
                     contentDescription = "Comment",
                     tint = textColor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = "Comment", color = textColor, fontSize = 14.sp)
@@ -217,7 +217,7 @@ object Common {
                     imageVector = Icons.Outlined.Repeat,
                     contentDescription = "Share",
                     tint = textColor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(text = "Share", color = textColor, fontSize = 14.sp)
