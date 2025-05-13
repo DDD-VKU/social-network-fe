@@ -1,9 +1,12 @@
 package vku.ddd.social_network_fe.ui.screens.profile
 
 import android.app.DatePickerDialog
+import android.net.Uri
 import android.util.Log
 import android.widget.DatePicker
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -36,6 +39,8 @@ import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import com.google.gson.Gson
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import vku.ddd.social_network_be.dto.request.AccountUpdateRequest
 import vku.ddd.social_network_fe.data.api.RetrofitClient
@@ -44,6 +49,8 @@ import vku.ddd.social_network_fe.data.datastore.TokenDataStore
 import vku.ddd.social_network_fe.data.model.Account
 import vku.ddd.social_network_fe.data.model.User
 import vku.ddd.social_network_fe.data.model.response.AccountResponse
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -56,6 +63,7 @@ fun EditProfileScreen(navHostController: NavHostController) {
     var isHaveAvatar by remember { mutableStateOf(false) }
     val defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png"
     var isLoading by remember { mutableStateOf(false) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     // State for editable fields
     var fname by remember { mutableStateOf("") }
@@ -93,6 +101,15 @@ fun EditProfileScreen(navHostController: NavHostController) {
         )
     }
 
+    // Image picker launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+        }
+    }
+
     // Load account data
     LaunchedEffect(Unit) {
         account = AccountDataStore(context).getAccount()
@@ -113,6 +130,15 @@ fun EditProfileScreen(navHostController: NavHostController) {
         shouldSave?.let { updatedAccount ->
             isLoading = true
             try {
+                val token = TokenDataStore(context).getToken()
+                if (token.isNullOrEmpty()) {
+                    Toast.makeText(context, "Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại", Toast.LENGTH_SHORT).show()
+                    navHostController.navigate("login")
+                    return@LaunchedEffect
+                }
+
+                Log.d("EditProfileScreen", "Token before sending: $token")
+
                 val inputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 val outputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val date = inputFormat.parse(dob)
@@ -131,13 +157,21 @@ fun EditProfileScreen(navHostController: NavHostController) {
                 Log.d("EditProfileScreen", "Request JSON: $requestJson")
                 val requestBody = requestJson.toRequestBody("application/json".toMediaTypeOrNull())
 
-                val token = TokenDataStore(context).getToken()
-                Log.d("EditProfileScreen", "Token: $token")
+                // Create MultipartBody.Part for avatar if an image is selected
+                val avatarPart = selectedImageUri?.let { uri ->
+                    val inputStream = context.contentResolver.openInputStream(uri)
+                    val tempFile = File.createTempFile("avatar", ".jpg", context.cacheDir)
+                    FileOutputStream(tempFile).use { outputStream ->
+                        inputStream?.copyTo(outputStream)
+                    }
+                    val requestFile = tempFile.asRequestBody("image/*".toMediaTypeOrNull())
+                    MultipartBody.Part.createFormData("avatar", tempFile.name, requestFile)
+                }
 
                 val response = RetrofitClient.instance.updateAccount(
                     token = "Bearer $token",
                     request = requestBody,
-                    avatar = null
+                    avatar = avatarPart
                 )
 
                 if (response.isSuccessful) {
@@ -194,7 +228,7 @@ fun EditProfileScreen(navHostController: NavHostController) {
                 Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
             }
             isLoading = false
-            shouldSave = null // Reset to prevent re-saving
+            shouldSave = null
         }
     }
 
@@ -342,10 +376,9 @@ fun EditProfileScreen(navHostController: NavHostController) {
                                 lname = lname,
                                 username = username,
                                 email = email,
-                                //gender = gender,
                                 dob = selectedDate ?: currentAccount.dob
                             )
-                            shouldSave = updatedAccount // Trigger save via state
+                            shouldSave = updatedAccount
                         }
                         showDialog = false
                     }) {
@@ -360,6 +393,38 @@ fun EditProfileScreen(navHostController: NavHostController) {
                 title = { Text("Chỉnh sửa thông tin") },
                 text = {
                     Column {
+                        // Avatar selection
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                AsyncImage(
+                                    model = selectedImageUri ?: if (isHaveAvatar) {
+                                        "http://10.0.2.2:8080/social-network/api/uploads/images/${account!!.avatar}"
+                                    } else {
+                                        defaultAvatar
+                                    },
+                                    contentDescription = "Profile Avatar",
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(CircleShape)
+                                        .border(2.dp, Color.Gray, CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(
+                                    onClick = { imagePickerLauncher.launch("image/*") }
+                                ) {
+                                    Text("Chọn ảnh đại diện")
+                                }
+                            }
+                        }
+
                         OutlinedTextField(
                             value = fname,
                             onValueChange = { fname = it },
