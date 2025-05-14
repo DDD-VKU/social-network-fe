@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.launch
 import vku.ddd.social_network_fe.R
 import vku.ddd.social_network_fe.data.api.RetrofitClient
 import vku.ddd.social_network_fe.data.datastore.AccountDataStore
@@ -57,21 +59,29 @@ fun HomeScreen(navController: NavHostController) {
     val posts = remember { mutableStateListOf<Post>() }
     val postsViewModel: PostViewModel = viewModel()
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         myAccount.value = AccountDataStore(context).getAccount()
         if (myAccount.value == null) {
+        val account = AccountDataStore(context).getAccount()
+        if (account == null) {
             navController.navigate("login")
+            return@LaunchedEffect // Return sớm, đúng lifecycle
         }
-        post.value =
-            fetchPost(118)
-        while (posts.size < 10 && post.value != null) {
-            if (fetchPost(187) != null)
-                posts.add(fetchPost(187)!!)
-            if (fetchPost(190) != null)
-                posts.add(fetchPost(190)!!)
+        myAccount.value = account
+
+        val initialPost = fetchPost(118)
+        post.value = initialPost
+
+        if (initialPost != null) {
+            val fetchedPosts = mutableListOf<Post>()
+            fetchPost(187)?.let { fetchedPosts.add(it) }
+            fetchPost(194)?.let { fetchedPosts.add(it) }
+
+            postsViewModel.loadData(fetchedPosts)
         }
-        postsViewModel.loadData(posts)
     }
+
 
     LazyColumn (
         modifier = Modifier.fillMaxSize()
@@ -101,9 +111,9 @@ fun HomeScreen(navController: NavHostController) {
                             contentScale = ContentScale.Crop,
 
                             modifier = Modifier
-                                .size(60.dp)
-                                .padding(1.dp)
-                                .clip(CircleShape),
+                                .fillMaxSize()
+                                .size(40.dp)
+                                .clip(CircleShape)
                         )
                     }
                     Spacer(Modifier.width(10.dp))
@@ -152,7 +162,7 @@ suspend fun fetchPost(id: Long): Post? {
             null
         }
     } catch (e: Exception) {
-        Log.e("abc def", "Exception: ${e.message}")
+        Log.e("abc def 1", "Exception: ${e.message}")
         null
     }
 }

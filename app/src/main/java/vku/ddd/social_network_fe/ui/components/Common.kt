@@ -205,7 +205,9 @@ object Common {
                 Text(text = "Comment", color = textColor, fontSize = 14.sp)
             }
             Button(
-                onClick = {},
+                onClick = {
+                    navController.navigate("post-share/$encodedPost")
+                },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = color,
                     contentColor = color
@@ -347,48 +349,47 @@ object Common {
                     }
                 }
             }
-            if (share == false && (account?.username == post.username))
-                Box {
-                    IconButton(
-                        onClick = { expanded.value = true }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.MoreVert,
-                            contentDescription = "Option",
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = expanded.value,
-                        onDismissRequest = {expanded.value = false},
-                        modifier = Modifier
-                            .background(Color.White)
-                            .border(1.dp, Color.LightGray)
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(text = "Edit") },
-                            onClick = {
-                                expanded.value = false
-                                navController.navigate("post-update/${encodedPost}")
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(text = "Delete") },
-                            onClick = {
-                                expanded.value = false
-                                coroutineScope.launch {
-                                    val response = RetrofitClient.instance!!.deletePost(post!!.id)
-                                    if (response.isSuccessful) {
-                                        viewModel.removePost(post.id)
-                                        Toast.makeText(context, response.body()?.message, Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        Toast.makeText(context, "Can't delete post", Toast.LENGTH_SHORT).show()
-                                    }
+            Box {
+                IconButton(
+                    onClick = { expanded.value = true }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = "Option",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                DropdownMenu(
+                    expanded = expanded.value,
+                    onDismissRequest = {expanded.value = false},
+                    modifier = Modifier
+                        .background(Color.White)
+                        .border(1.dp, Color.LightGray)
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(text = "Edit") },
+                        onClick = {
+                            expanded.value = false
+                            navController.navigate("post-update/${encodedPost}")
+                        }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Delete") },
+                        onClick = {
+                            expanded.value = false
+                            coroutineScope.launch {
+                                val response = RetrofitClient.instance!!.deletePost(post!!.id)
+                                if (response.isSuccessful) {
+                                    viewModel.removePost(post.id)
+                                    Toast.makeText(context, response.body()?.message, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, "Can't delete post", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        )
-                    }
+                        }
+                    )
                 }
+            }
         }
     }
 
@@ -848,7 +849,7 @@ object Common {
                 null
             }
         } catch (e: Exception) {
-            Log.e("abc def", "Exception: ${e.message}")
+            Log.e("abc def 2", "Exception: ${e.message}")
             null
         }
     }
@@ -864,7 +865,7 @@ object Common {
                 null
             }
         } catch (ex: Exception) {
-            Log.e("abc def", "Exception: ${ex.message}")
+            Log.e("abc def 3", "Exception: ${ex.message}")
             null
         }
     }

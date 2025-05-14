@@ -77,7 +77,7 @@ class StompManager(
                     }
             }
         } catch (e: Exception) {
-            Log.e("StompManager", "Connection error: \${e.message}")
+            Log.e("StompManager", "Connection error: ${e.message}")
             throw e
         } finally {
             session = null
@@ -99,7 +99,7 @@ class StompManager(
                     append("\u0000")
                 }
                 session?.send(Frame.Text(subscribeFrame))
-                Log.d("StompManager", "Subscribed to \$topic")
+                Log.d("StompManager", "Subscribed to $topic")
             } else {
                 Log.e("StompManager", "Cannot subscribe - not connected")
             }
@@ -121,7 +121,7 @@ class StompManager(
         try {
             session?.close()
         } catch (e: Exception) {
-            Log.e("StompManager", "Disconnect error: \${e.message}")
+            Log.e("StompManager", "Disconnect error: ${e.message}")
         } finally {
             session = null
             _stompConnected = false

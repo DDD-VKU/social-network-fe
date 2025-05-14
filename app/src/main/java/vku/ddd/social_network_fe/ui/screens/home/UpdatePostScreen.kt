@@ -53,6 +53,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -73,6 +74,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import vku.ddd.social_network_be.dto.request.PostCreateRequest
 import vku.ddd.social_network_fe.data.api.RetrofitClient
+import vku.ddd.social_network_fe.data.datastore.AccountDataStore
+import vku.ddd.social_network_fe.data.model.Account
 import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.components.DropdownMenuBox
 import vku.ddd.social_network_fe.data.utils.FileUploadUtils.urisToMultipartParts
@@ -90,13 +93,18 @@ fun UpdatePostScreen(navController: NavHostController, post: Post) {
     remember { mutableStateListOf<String>() }
     var selectedPrivacy by remember { mutableStateOf("Public") }
     val privacyOptions = listOf("Public", "Followers", "Private")
-    var selectedImages by remember { mutableStateOf(mutableListOf<Uri>()) }
+    val selectedImages = remember { mutableStateListOf<Uri>() }
     val childPostContents = remember { mutableStateListOf<String>() }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val postJson = gson.toJson(post)
     val encodedPost = URLEncoder.encode(postJson, StandardCharsets.UTF_8.toString())
     val loadPostSuccess = remember { mutableStateOf(false) }
+    var account by remember { mutableStateOf<Account?>(null) }
+
+    LaunchedEffect(Unit) {
+        account = AccountDataStore(context).getAccount()
+    }
 
 // 2. Tách thành 2 LaunchedEffect riêng
 // Effect 1: Chỉ xử lý load dữ liệu từ post
@@ -104,13 +112,17 @@ fun UpdatePostScreen(navController: NavHostController, post: Post) {
         selectedImages.clear()
         childPostContents.clear()
 
-        post?.childrenPosts?.forEach { childPost ->
-            downloadImageAndGetUri(context, "http://10.0.2.2:8080/social-network/api/uploads/images/${childPost.imageId}")?.let { uri ->
-                if (!selectedImages.any { it.toString() == uri.toString() }) {
-                    selectedImages.add(uri)
-                }
+        post?.childrenPosts?.let { children ->
+            val uris = children.mapNotNull { childPost ->
+                downloadImageAndGetUri(
+                    context,
+                    "http://10.0.2.2:8080/social-network/api/uploads/images/${childPost.imageId}"
+                )
             }
-            childPostContents.add(childPost.caption ?: "")
+
+            selectedImages.addAll(uris)
+            Log.d("Download", selectedImages.toString())
+            childPostContents.addAll(children.map { it.caption ?: "" })
         }
     }
 
@@ -137,13 +149,14 @@ fun UpdatePostScreen(navController: NavHostController, post: Post) {
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10),
         onResult = { uris ->
-            selectedImages = uris.toMutableList()
+            selectedImages.clear()
+            selectedImages.addAll(uris.toMutableList())
         }
     )
 
     // Prepare the create request. (Make sure you clear captions if needed)
     var createRequest = PostCreateRequest(
-        userId = 1,
+        userId = account?.id ?: 1,
         caption = mutableListOf() // assuming caption is a mutable list in your DTO
     )
 
@@ -199,14 +212,17 @@ fun UpdatePostScreen(navController: NavHostController, post: Post) {
                 .verticalScroll(rememberScrollState())
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
+                AsyncImage(
+                    model = "http://10.0.2.2:8080/social-network/api/uploads/images/${account?.avatar}",
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth,
                     modifier = Modifier
                         .size(50.dp)
-                        .background(Color.Gray, CircleShape)
+                        .clip(CircleShape)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
-                    Text("Nguyễn Văn A", fontSize = 16.sp)
+                    Text(account?.lname + " " + account?.fname, fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(4.dp))
                     DropdownMenuBox(selectedPrivacy, privacyOptions) { selectedPrivacy = it }
                 }
@@ -236,19 +252,18 @@ fun UpdatePostScreen(navController: NavHostController, post: Post) {
                     )
                 )
                 if (selectedImages.isNotEmpty()) {
-                    selectedImages.forEachIndexed { index, image ->
-                        Column {
-                            Spacer(modifier = Modifier.height(10.dp))
+                    selectedImages.forEachIndexed { index, imageUri ->
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
                             AsyncImage(
                                 model = ImageRequest.Builder(context)
-                                    .data(image)
+                                    .data(imageUri)
                                     .crossfade(true)
                                     .build(),
-                                contentDescription = "Selected image",
-                                contentScale = ContentScale.FillWidth,
+                                contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(max = 400.dp)
+                                    .heightIn(max = 300.dp),
+                                contentScale = ContentScale.Crop
                             )
                             if (selectedImages.size > 1) {
                                 TextField(
@@ -398,7 +413,7 @@ suspend fun downloadImageAndGetUri(context: Context, imageUrl: String): Uri? {
             connection.connect()
             val inputStream = connection.inputStream
             val bitmap = BitmapFactory.decodeStream(inputStream)
-
+            Log.d("Download", imageUrl)
             // Lưu ảnh tạm thời vào cache và lấy Uri
             val file = File.createTempFile("temp_image", ".jpg", context.cacheDir)
             val out = FileOutputStream(file)
