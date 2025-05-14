@@ -215,6 +215,7 @@ fun EditProfileScreen(navHostController: NavHostController) {
                             Toast.makeText(context, "Lỗi khi lấy danh sách followers/following", Toast.LENGTH_SHORT).show()
                         }
                     } else {
+                        Log.e("EditProfileScreen", response.body().toString())
                         Toast.makeText(context, "Cập nhật thông tin thất bại!", Toast.LENGTH_SHORT).show()
                     }
                 } else {

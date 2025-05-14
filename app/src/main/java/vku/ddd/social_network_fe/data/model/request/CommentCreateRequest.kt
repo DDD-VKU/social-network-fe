@@ -19,5 +19,7 @@ data class CommentCreateRequest(
 
     var commentLevel: Long = 0,
 
-    var createdAt: String = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+    var createdAt: String = LocalDateTime.now()
+        .withNano((LocalDateTime.now().nano / 1_000_000) * 1_000_000) // Giới hạn đến mili giây
+        .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
 )
