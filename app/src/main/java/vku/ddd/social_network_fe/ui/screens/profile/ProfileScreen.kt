@@ -1,5 +1,6 @@
 package vku.ddd.social_network_fe.ui.screens.profile
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.border
@@ -40,7 +41,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -51,8 +51,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -66,6 +64,7 @@ import vku.ddd.social_network_fe.ui.viewmodel.PostViewModel
 
 @Composable
 fun ProfileScreen(navController: NavHostController, accountId: Long) {
+    Log.d("ProfileScreen", "Received accountId: $accountId")
     val postViewModel: PostViewModel = viewModel()
     var account by remember { mutableStateOf<Account?>(null) }
     var loginAccount by remember { mutableStateOf<Account?>(null) }
@@ -78,7 +77,7 @@ fun ProfileScreen(navController: NavHostController, accountId: Long) {
         errorMessage = null
 
         try {
-            account = getAccountInfo(accountId)
+            account = getAccountInfo(accountId, context)
             loginAccount = AccountDataStore(context).getAccount()!!
             val posts = getPosts(accountId)
             postViewModel.loadData(posts)
@@ -92,7 +91,7 @@ fun ProfileScreen(navController: NavHostController, accountId: Long) {
 
     LaunchedEffect(accountId) {
         try {
-            account = getAccountInfo(accountId)
+            account = getAccountInfo(accountId, context)
         } catch (e: Exception) {
             Log.e("ProfileScreen", "Error reloading account", e)
         }
@@ -260,14 +259,17 @@ fun ProfileStat(count: String, label: String) {
 }
 
 
-suspend fun getAccountInfo(id: Long): Account? {
+suspend fun getAccountInfo(id: Long, context: Context): Account? {
     return try {
         val response = RetrofitClient.instance.getAccountInfo(id)
+        Log.d("Profile Screen before:", response.body().toString())
         if (response.isSuccessful) {
-            Log.d("ProfileScreen", id.toString())
-            Log.d("ProfileScreen", response.body().toString())
+            Log.d("Profile Screen", id.toString())
+            Log.d("Profile Screen after:", response.body().toString())
             response.body()!!.data
         } else {
+            Toast.makeText(context, response.body().toString(), Toast.LENGTH_SHORT).show()
+            Log.d("Profile Screen after:", response.body().toString())
             null
         }
     } catch (e: Exception) {
@@ -279,6 +281,7 @@ suspend fun getAccountInfo(id: Long): Account? {
 suspend fun getPosts(accountId: Long): MutableList<Post> {
     return try {
         val response = RetrofitClient.instance.getPostByCreatorId(accountId)
+        Log.d("Profile Screen before:", response.body().toString())
         if (response.isSuccessful) {
             response.body()!!.data.toMutableList()
         } else {

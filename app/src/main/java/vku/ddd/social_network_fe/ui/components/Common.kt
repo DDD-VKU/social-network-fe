@@ -141,7 +141,6 @@ object Common {
         val coroutineScope = rememberCoroutineScope()
         val context = LocalContext.current
         val accountDataStore = remember { AccountDataStore(context) }
-
         Row (
             modifier = Modifier
         ) {
@@ -276,6 +275,7 @@ object Common {
         }
     }
 
+    // Post
     @Composable
     fun PostMetaData(navController: NavHostController, post: Post, share: Boolean) {
         val postJson = gson.toJson(post)
@@ -332,7 +332,16 @@ object Common {
                         Text(
                             text = (post?.userLname + " " + post?.userFname) ?: "Nguyễn Văn A",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
+                            fontSize = 16.sp,
+                            modifier = Modifier
+                                .clickable {
+                                    if (post.userId != null) {
+                                        navController.navigate("profile/${post.userId}")
+                                    }
+                                    else {
+                                        Toast.makeText(context, "Bài viết không có người dùng", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
                         )
                         Text(text = parsedDateTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")))
                     }
@@ -712,15 +721,12 @@ object Common {
                         hidden.value = !hidden.value
                     }
             ) {
+                val context = LocalContext.current
                 Text(
                     text = (post.userLname + " " + post.userFname) ?: "Nguyễn Văn A",
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 18.sp,
                     color = Color.White,
-                    modifier = Modifier
-                        .clickable {
-                            navController.navigate("profile")
-                        }
                 )
                 Text(
                     text = post.caption ?: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
