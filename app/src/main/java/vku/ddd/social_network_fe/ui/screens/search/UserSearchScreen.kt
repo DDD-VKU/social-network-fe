@@ -83,10 +83,11 @@ fun UserSearchScreen(navController: NavHostController, queryString: String) {
                     AsyncImage(
                         model = "http://10.0.2.2:8080/social-network/api/uploads/images/${user.avatar}",
                         contentDescription = null,
-                        contentScale = ContentScale.FillWidth,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape)
+                            .size(56.dp)
+                            .padding(1.dp)
+                            .clip(CircleShape),
                     )
                 }
 

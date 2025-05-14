@@ -98,11 +98,12 @@ fun HomeScreen(navController: NavHostController) {
                         AsyncImage(
                             model = "http://10.0.2.2:8080/social-network/api/uploads/images/${myAccount.value?.avatar ?: 0L}",
                             contentDescription = null,
-                            contentScale = ContentScale.FillWidth,
+                            contentScale = ContentScale.Crop,
 
                             modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape)
+                                .size(60.dp)
+                                .padding(1.dp)
+                                .clip(CircleShape),
                         )
                     }
                     Spacer(Modifier.width(10.dp))

@@ -45,6 +45,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +54,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -73,6 +75,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import vku.ddd.social_network_be.dto.request.PostCreateRequest
 import vku.ddd.social_network_fe.data.api.RetrofitClient
+import vku.ddd.social_network_fe.data.datastore.AccountDataStore
+import vku.ddd.social_network_fe.data.model.Account
 import vku.ddd.social_network_fe.data.model.Post
 import vku.ddd.social_network_fe.ui.components.DropdownMenuBox
 import vku.ddd.social_network_fe.data.utils.FileUploadUtils.urisToMultipartParts
@@ -123,7 +127,12 @@ fun CreatePostScreen(navController: NavHostController) {
     var selectedImages by remember { mutableStateOf(mutableListOf<Uri>()) }
     val childPostContents = remember { mutableStateListOf<String>() }
     val coroutineScope = rememberCoroutineScope()
+    // Get current account
     val context = LocalContext.current
+    var account by remember { mutableStateOf<Account?>(null) }
+    LaunchedEffect(Unit) {
+        account = AccountDataStore(context).getAccount()
+    }
 
     // Keep child captions in sync with selected images
     LaunchedEffect(selectedImages.size) {
@@ -207,11 +216,21 @@ fun CreatePostScreen(navController: NavHostController) {
                 Box(
                     modifier = Modifier
                         .size(50.dp)
-                        .background(Color.Gray, CircleShape)
-                )
+                        .border(1.dp, Color.LightGray, CircleShape)
+                ) {
+                    AsyncImage(
+                        model = "http://10.0.2.2:8080/social-network/api/uploads/images/${account?.avatar}",
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(72.dp)
+                            .padding(1.dp)
+                            .clip(CircleShape),
+                    )
+                }
                 Spacer(modifier = Modifier.width(8.dp))
                 Column {
-                    Text("Nguyễn Văn A", fontSize = 16.sp)
+                    Text( text = account?.run { "$lname $fname" } ?: "Write your status", fontSize = 16.sp)
                     Spacer(modifier = Modifier.height(4.dp))
                     DropdownMenuBox(selectedPrivacy, privacyOptions) { selectedPrivacy = it }
                 }

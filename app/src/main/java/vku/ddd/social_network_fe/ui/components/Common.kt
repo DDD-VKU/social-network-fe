@@ -317,10 +317,11 @@ object Common {
                     AsyncImage(
                         model = "http://10.0.2.2:8080/social-network/api/uploads/images/${post!!.avatarId}",
                         contentDescription = null,
-                        contentScale = ContentScale.FillWidth,
+                        contentScale = ContentScale.Crop,
                         modifier = Modifier
-                            .fillMaxSize()
-                            .clip(CircleShape)
+                            .size(40.dp)
+                            .padding(1.dp)
+                            .clip(CircleShape),
                     )
                 }
                 Spacer(Modifier.width(10.dp))
