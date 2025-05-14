@@ -61,8 +61,6 @@ fun HomeScreen(navController: NavHostController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
-        myAccount.value = AccountDataStore(context).getAccount()
-        if (myAccount.value == null) {
         val account = AccountDataStore(context).getAccount()
         if (account == null) {
             navController.navigate("login")
